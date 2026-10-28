@@ -7,47 +7,91 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Serie viste</title>
+<title>K-LIST</title>
 <style>
   :root{--bg:#0b0b0f;--panel:#17171f;--fg:#f2f2f5;--mut:#8b8b99;--acc:#e5484d}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--fg);font:15px system-ui,sans-serif}
   header{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;padding:8px 12px;background:rgba(11,11,15,.92);backdrop-filter:blur(8px)}
-  header h1{font-size:16px;margin:0;flex:1}
+  #hl{flex:1;position:relative;min-width:0}
   button{background:var(--panel);color:var(--fg);border:0;border-radius:8px;padding:9px 14px;font:inherit}
   button.p{background:var(--acc)}
+  #bList{background:none;padding:6px 0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:baseline}
+  #bList small{color:var(--mut);font-weight:400}
+  .menu{display:none;position:absolute;top:100%;left:0;background:var(--panel);border-radius:10px;min-width:190px;z-index:20;box-shadow:0 8px 24px #000a;overflow:hidden}
+  .menu.on{display:block}
+  .menu button{display:flex;justify-content:space-between;width:100%;background:none;border-radius:0;padding:13px 14px;text-align:left}
+  .menu button.cur{color:var(--acc);font-weight:700}
+  .menu button span{color:var(--mut);font-weight:400}
   #grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:8px 12px 40px}
   .c{aspect-ratio:2/3;border-radius:6px;overflow:hidden;background:var(--panel);position:relative}
   .c img{width:100%;height:100%;object-fit:cover;display:block}
   .c span{position:absolute;inset:auto 0 0 0;padding:4px;font-size:10px;background:linear-gradient(transparent,#000c)}
   .it{cursor:pointer;min-width:0}
   .t{font-size:11px;line-height:1.25;margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
-  #dPlot{line-height:1.5;margin:14px 0 0;color:#d6d6de}
-  .cast{display:flex;gap:12px;overflow-x:auto;margin-top:14px}
-  .cast:empty{display:none}
-  .cast div{flex:none;width:64px;text-align:center;font-size:10px;line-height:1.2;color:var(--mut)}
-  .cast img{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 4px;background:var(--panel)}
   #empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:60px 0}
   .sheet{position:fixed;inset:0;z-index:10;background:var(--bg);display:none;flex-direction:column}
   .sheet.on{display:flex}
-  .bar{display:flex;gap:8px;padding:10px 12px}
+  .bar{display:flex;gap:8px;padding:10px 12px;align-items:center}
   .bar input{flex:1}
-  input{background:var(--panel);color:var(--fg);border:1px solid #2a2a36;border-radius:8px;padding:10px;font:inherit;min-width:0}
+  input,select{background:var(--panel);color:var(--fg);border:1px solid #2a2a36;border-radius:8px;padding:10px;font:inherit;min-width:0}
   .body{overflow:auto;padding:0 12px 24px;flex:1}
   .res{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
   .res .c{cursor:pointer}
   .res .c.done{opacity:.35}
   @media (orientation:portrait){#grid,.res{grid-template-columns:repeat(3,1fr)}}
+  @media (orientation:landscape){#grid,.res{grid-template-columns:repeat(var(--cl,6),1fr)}}
   label{display:block;margin:14px 0 4px;color:var(--mut);font-size:13px}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
   .msg{color:var(--mut);padding:16px 0}
-  #detail .top{display:flex;gap:14px;align-items:flex-start}
-  #detail .top .c{width:90px;flex:none}
+
+  /* scheda */
+  .fab{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:3;width:40px;height:40px;padding:0;border-radius:50%;background:rgba(0,0,0,.55);font-size:20px;line-height:40px}
+  #detail .body{padding:0}
+  .hero{height:190px;background:linear-gradient(135deg,#23233a,#12121c) center/cover no-repeat}
+  .hero i{display:block;height:100%;background:linear-gradient(transparent 40%,var(--bg))}
+  .head{display:flex;gap:14px;padding:0 14px;align-items:flex-start}
+  .head .c{width:clamp(110px,34vw,160px);flex:none;margin-top:-80px;box-shadow:0 6px 18px #000a}
+  .info{padding-top:12px;min-width:0}
+  .info h2{margin:0 0 6px;font-size:21px;line-height:1.2}
+  .sub{color:var(--mut)}
+  .pad{padding:0 14px 28px}
+  #dPlot{line-height:1.5;margin:18px 0 0;color:#d6d6de}
+  .linkbtn{background:none;padding:10px 0 0;color:#4da3ff;font-weight:600}
+  .cast{display:flex;gap:12px;overflow-x:auto;margin-top:16px}
+  .cast:empty{display:none}
+  .cast div{flex:none;width:72px;text-align:center;font-size:11px;line-height:1.2}
+  .cast img{width:60px;height:60px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 5px;background:var(--panel)}
+  .cast em{display:block;font-style:normal;color:var(--mut);font-size:10px;margin-top:2px}
+  .prog{margin-top:18px;background:var(--panel);border-radius:12px;padding:12px 14px}
+  .pbar{height:6px;border-radius:3px;background:#2a2a36;overflow:hidden}
+  .pbar i{display:block;height:100%;background:#3b8cff;width:0}
+  .prow{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:10px;font-size:18px}
+  .prow button{width:44px;height:40px;padding:0;font-size:20px;background:#23232e}
+  .prow .lnk{background:none;padding:0;font-size:18px;width:auto;height:auto;text-decoration:underline dotted;color:var(--fg)}
+
+  /* episodi */
+  .ep{background:var(--panel);border-radius:12px;overflow:hidden;margin-bottom:12px}
+  .still{aspect-ratio:16/9;background:#000}
+  .still img{width:100%;height:100%;object-fit:cover;display:block}
+  .ep .et{padding:10px 12px 0;font-weight:700}
+  .ep .eo{padding:6px 12px 12px;color:#c9c9d3;line-height:1.45;font-size:14px}
+  .ep .et:last-child{padding-bottom:12px}
+
+  /* scelta lista */
+  #pick{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:none;align-items:flex-end}
+  #pick.on{display:flex}
+  .pickbox{background:var(--panel);width:100%;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0;display:flex;flex-direction:column;gap:8px}
+  .pickbox h3{margin:0 0 6px;font-size:15px}
+  .pickbox button{background:#23232e;padding:14px}
 </style>
 </head>
 <body>
 <header>
-  <h1>Serie viste <small id="n" style="color:var(--mut)"></small></h1>
+  <div id="hl">
+    <button id="bList"><span id="lName"></span><small id="n"></small><span>▾</span></button>
+    <div class="menu" id="menu"></div>
+  </div>
   <button id="bSort"></button>
   <button id="bAdd" class="p">+ Aggiungi</button>
   <button id="bSet">⚙</button>
@@ -64,25 +108,50 @@
   <div class="body"><div id="res" class="res"></div><div id="sMsg" class="msg"></div></div>
 </div>
 
-<!-- dettaglio / poster -->
+<!-- scheda -->
 <div class="sheet" id="detail">
-  <div class="bar"><button id="dClose">✕ Chiudi</button></div>
+  <button class="fab" id="dClose">←</button>
   <div class="body">
-    <div class="top"><div class="c"><img id="dImg"></div><div><h2 id="dTitle" style="margin:0 0 4px"></h2><div id="dYear" style="color:var(--mut)"></div></div></div>
-    <p id="dPlot"></p>
-    <div id="dCast" class="cast"></div>
-    <label>Poster personalizzato (URL immagine)</label>
-    <div class="row"><input id="dUrl" style="flex:1" placeholder="https://…"><button id="dUrlOk">Usa</button></div>
-    <div class="row">
-      <button id="dFile">Carica dalla galleria</button>
-      <button id="dPic">Poster Pictorium</button>
-      <button id="dTmdb">Altri poster TMDB</button>
-      <button id="dReset">Poster originale</button>
+    <div class="hero" id="dHero"><i></i></div>
+    <div class="head">
+      <div class="c"><img id="dImg" alt=""></div>
+      <div class="info">
+        <h2 id="dTitle"></h2>
+        <div class="sub" id="dSub"></div>
+        <button class="linkbtn" id="dEps">Episodi ›</button>
+      </div>
     </div>
-    <input id="file" type="file" accept="image/*" hidden>
-    <div id="alts" class="res" style="margin-top:12px"></div>
-    <div class="row" style="margin-top:24px"><button id="dDel" style="color:var(--acc)">Rimuovi dalla lista</button></div>
+    <div class="pad">
+      <div class="prog" id="dProg" hidden>
+        <div class="pbar"><i id="pFill"></i></div>
+        <div class="prow"><button id="pMinus">−</button><span><span id="pCur">0</span> / <button class="lnk" id="pTot">?</button></span><button id="pPlus">+</button></div>
+      </div>
+      <p id="dPlot"></p>
+      <div id="dCast" class="cast"></div>
+      <div class="row" id="dMove" style="margin-top:22px"></div>
+      <label>Poster personalizzato (URL immagine)</label>
+      <div class="row"><input id="dUrl" style="flex:1" placeholder="https://…"><button id="dUrlOk">Usa</button></div>
+      <div class="row">
+        <button id="dFile">Carica dalla galleria</button>
+        <button id="dPic">Poster Pictorium</button>
+        <button id="dTmdb">Altri poster TMDB</button>
+        <button id="dReset">Poster originale</button>
+      </div>
+      <input id="file" type="file" accept="image/*" hidden>
+      <div id="alts" class="res" style="margin-top:12px"></div>
+      <div class="row" style="margin-top:24px"><button id="dDel" style="color:var(--acc)">Rimuovi dalla lista</button></div>
+    </div>
   </div>
+</div>
+
+<!-- episodi -->
+<div class="sheet" id="eps">
+  <div class="bar">
+    <button id="eClose">←</button>
+    <strong id="eTitle" style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></strong>
+    <select id="eSeason" hidden></select>
+  </div>
+  <div class="body" id="eList"></div>
 </div>
 
 <!-- impostazioni -->
@@ -96,6 +165,8 @@
     <label>Shape Pictorium</label>
     <input id="kShape" style="width:100%" autocomplete="off" placeholder="es. poster">
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="kAuto"> Usa Pictorium per le nuove serie</label>
+    <label>Locandine per riga in orizzontale</label>
+    <select id="kCols"><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
     <div class="row"><button id="stSave" class="p">Salva</button></div>
     <div class="row" style="margin-top:24px"><button id="fixT">Aggiorna titoli in inglese</button></div>
     <div id="fixMsg" class="msg"></div>
@@ -108,25 +179,52 @@
   </div>
 </div>
 
+<!-- scelta lista all'aggiunta -->
+<div id="pick"><div class="pickbox">
+  <h3 id="pickT">Aggiungi a…</h3>
+  <button data-l="viste">Viste</button>
+  <button data-l="vedere">Da vedere</button>
+  <button data-l="guardando">Guardando</button>
+  <button id="pickX" style="background:none;color:var(--mut)">Annulla</button>
+</div></div>
+
 <script>
 const $=s=>document.querySelector(s);
 const IMG='https://image.tmdb.org/t/p/';
-let db=JSON.parse(localStorage.getItem('serie')||'[]');
-let cfg=JSON.parse(localStorage.getItem('cfg')||'{}');
-let cur=null;
+const LISTS={viste:'Viste',vedere:'Da vedere',guardando:'Guardando'};
+const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'')||d}catch(e){return d}};
+let db=jget('serie',[]);
+db.forEach(s=>{if(!LISTS[s.list])s.list='viste'});
+let cfg=jget('cfg',{});
+let epc=jget('eps',{});
+let cur=null,pending=null;
 let sort=localStorage.getItem('sort')||'recent';
+let view=localStorage.getItem('view');if(!LISTS[view])view='viste';
+const loading=new Set();
+
 const save=()=>{try{localStorage.setItem('serie',JSON.stringify(db))}catch(e){alert('Memoria piena: usa URL invece di caricare immagini grandi.')}};
-const poster=s=>s.custom||(s.path?IMG+'w342'+s.path:'');
+const saveEps=()=>{try{localStorage.setItem('eps',JSON.stringify(epc))}catch(e){}};
+const poster=(s,w='w342')=>s.custom||(s.path?IMG+w+s.path:'');
+const total=s=>s.epsTotal||s.eps||0;
+function applyCols(){document.documentElement.style.setProperty('--cl',cfg.cols||6)}
 function picUrl(s){
   const t=(cfg.pic||'').trim(); if(!t) return '';
   return t.replace('{type}','tv').replace('{tmdb_id|imdb_id}',s.id).replace('{id}',s.id).replace('{shape}',encodeURIComponent(cfg.shape||'poster'));
 }
 
+/* ---------- lista ---------- */
 function render(){
-  $('#n').textContent=db.length?`(${db.length})`:'';
-  $('#grid').innerHTML=db.length?'':'<div id="empty">Nessuna serie.<br>Premi “+ Aggiungi” per iniziare.<br><br>Prima inserisci la chiave TMDB in ⚙</div>';
+  const inList=db.filter(s=>s.list===view);
+  $('#lName').textContent=LISTS[view];
+  $('#n').textContent=inList.length?`(${inList.length})`:'';
   $('#bSort').textContent=sort==='az'?'A–Z':'Recenti';
-  const list=sort==='az'?[...db].sort((a,b)=>a.name.localeCompare(b.name,'it',{sensitivity:'base',ignorePunctuation:true})):db;
+  const g=$('#grid');g.innerHTML='';
+  if(!inList.length){
+    const e=document.createElement('div');e.id='empty';
+    e.innerHTML=db.length?'Nessuna serie in questa lista.':'Nessuna serie.<br>Premi “+ Aggiungi” per iniziare.<br><br>Prima inserisci la chiave TMDB in ⚙';
+    g.appendChild(e);
+  }
+  const list=sort==='az'?[...inList].sort((a,b)=>a.name.localeCompare(b.name,'it',{sensitivity:'base',ignorePunctuation:true})):inList;
   list.forEach(s=>{
     const d=document.createElement('div');d.className='it';
     const c=document.createElement('div');c.className='c';
@@ -134,10 +232,21 @@ function render(){
     const t=document.createElement('div');t.className='t';t.textContent=s.name;
     d.append(c,t);
     d.onclick=()=>openDetail(s.id);
-    $('#grid').appendChild(d);
+    g.appendChild(d);
+  });
+  renderMenu();
+}
+function renderMenu(){
+  const m=$('#menu');m.innerHTML='';
+  Object.entries(LISTS).forEach(([k,v])=>{
+    const b=document.createElement('button');if(k===view)b.className='cur';
+    b.innerHTML=`${v} <span>${db.filter(s=>s.list===k).length}</span>`;
+    b.onclick=e=>{e.stopPropagation();view=k;localStorage.setItem('view',k);m.classList.remove('on');render()};
+    m.appendChild(b);
   });
 }
 
+/* ---------- TMDB ---------- */
 async function tmdb(path,params={}){
   const k=(cfg.tmdb||'').trim();
   if(!k) throw new Error('Inserisci la chiave TMDB in ⚙');
@@ -160,28 +269,51 @@ async function doSearch(){
     r.forEach(x=>{
       const d=document.createElement('div');
       d.className='c'+(db.some(s=>s.id===x.id)?' done':'');
-      d.innerHTML=`<img src="${IMG}w185${x.poster_path}"><span>${x.name} ${(x.first_air_date||'').slice(0,4)}</span>`;
+      d.innerHTML=`<img src="${IMG}w185${x.poster_path}"><span></span>`;
+      d.querySelector('span').textContent=`${x.name} ${(x.first_air_date||'').slice(0,4)}`;
       d.onclick=()=>{
         if(db.some(s=>s.id===x.id)) return;
-        const n={id:x.id,name:x.name,year:(x.first_air_date||'').slice(0,4),path:x.poster_path};
-        if(cfg.auto&&cfg.pic) n.custom=picUrl(n);
-        db.unshift(n);
-        save();render();d.classList.add('done');
+        pending={x,el:d};
+        $('#pickT').textContent='Aggiungi “'+x.name+'” a…';
+        $('#pick').classList.add('on');
       };
       $('#res').appendChild(d);
     });
   }catch(e){$('#sMsg').textContent=e.message}
 }
+function addPending(l){
+  if(!pending) return;
+  const {x,el}=pending;pending=null;
+  const n={id:x.id,name:x.name,year:(x.first_air_date||'').slice(0,4),path:x.poster_path,list:l};
+  if(cfg.auto&&cfg.pic) n.custom=picUrl(n);
+  db.unshift(n);save();render();el.classList.add('done');
+  $('#pick').classList.remove('on');
+}
 
+/* ---------- scheda ---------- */
 function openDetail(id){
-  cur=db.find(s=>s.id===id);
-  $('#dImg').src=poster(cur);$('#dTitle').textContent=cur.name;$('#dYear').textContent=cur.year||'';
-  $('#dUrl').value='';$('#alts').innerHTML='';
-  $('#dPlot').textContent=cur.overview||(cur.overview===undefined?'Carico la trama…':'Trama non disponibile.');
+  cur=db.find(s=>s.id===id);if(!cur)return;
+  $('#dUrl').value='';$('#alts').innerHTML='';$('#dDel').blur();
+  renderDetail();
   $('#detail').classList.add('on');
-  if(cur.overview===undefined) loadPlot(cur);
-  renderCast(cur);
-  if(cur.cast===undefined) loadCast(cur);
+  $('#detail .body').scrollTop=0;
+  if(cur.v!==2) loadMeta(cur);
+}
+function renderDetail(){
+  const s=cur;if(!s)return;
+  $('#dHero').style.backgroundImage=s.backdrop?`url(${IMG}w780${s.backdrop})`:'';
+  $('#dImg').src=poster(s,'w500');
+  $('#dTitle').textContent=s.name;
+  $('#dSub').textContent=[s.year,s.eps?s.eps+' episodes':''].filter(Boolean).join(' • ');
+  $('#dPlot').textContent=s.overview||(loading.has(s.id)?'Carico la trama…':'Trama non disponibile.');
+  renderCast(s);
+  renderProg(s);
+  const mv=$('#dMove');mv.innerHTML='';
+  Object.entries(LISTS).filter(([k])=>k!==s.list).forEach(([k,v])=>{
+    const b=document.createElement('button');b.textContent='Sposta in '+v;
+    b.onclick=()=>{s.list=k;save();render();renderDetail()};
+    mv.appendChild(b);
+  });
 }
 function renderCast(s){
   const box=$('#dCast');box.innerHTML='';
@@ -189,35 +321,97 @@ function renderCast(s){
     const d=document.createElement('div');
     const im=document.createElement('img');im.loading='lazy';im.src=IMG+'w185'+a.p;
     const n=document.createElement('span');n.textContent=a.n;
-    d.append(im,n);box.appendChild(d);
+    d.append(im,n);
+    if(a.c){const c=document.createElement('em');c.textContent=a.c;d.appendChild(c)}
+    box.appendChild(d);
   });
 }
-async function loadCast(s){
-  try{
-    const j=await tmdb(`/tv/${s.id}/credits`,{language:'en-US'});
-    s.cast=(j.cast||[]).filter(a=>a.profile_path).slice(0,8).map(a=>({n:a.name,p:a.profile_path}));
-    save();
-    if(cur===s) renderCast(s);
-  }catch(e){}
+function renderProg(s){
+  const box=$('#dProg');
+  box.hidden=s.list!=='guardando';
+  if(box.hidden)return;
+  const t=total(s),p=s.prog||0;
+  $('#pCur').textContent=p;
+  $('#pTot').textContent=t||'?';
+  $('#pFill').style.width=(t?Math.min(100,p/t*100):0)+'%';
 }
-async function loadPlot(s){
+async function loadMeta(s){
+  loading.add(s.id);renderDetailIf(s);
   try{
-    let o=(await tmdb('/tv/'+s.id,{language:'it-IT'})).overview;
-    if(!o) o=(await tmdb('/tv/'+s.id,{language:'en-US'})).overview;
-    s.overview=o||'';save();
-    if(cur===s) $('#dPlot').textContent=s.overview||'Trama non disponibile.';
-  }catch(e){if(cur===s) $('#dPlot').textContent='Trama non disponibile ('+e.message+')'}
+    const [d,it,cr]=await Promise.all([
+      tmdb('/tv/'+s.id,{language:'en-US'}),
+      s.overview===undefined?tmdb('/tv/'+s.id,{language:'it-IT'}):Promise.resolve(null),
+      tmdb(`/tv/${s.id}/credits`,{language:'en-US'}).catch(()=>null)
+    ]);
+    if(s.overview===undefined) s.overview=(it&&it.overview)||d.overview||'';
+    s.backdrop=d.backdrop_path||'';
+    s.eps=d.number_of_episodes||0;
+    s.seasons=(d.seasons||[]).filter(x=>x.season_number>0&&x.episode_count>0).map(x=>({n:x.season_number,c:x.episode_count}));
+    if(cr) s.cast=(cr.cast||[]).filter(a=>a.profile_path).slice(0,8).map(a=>({n:a.name,p:a.profile_path,c:a.character||''}));
+    s.v=2;save();
+  }catch(e){
+    if(cur===s&&!s.overview) $('#dPlot').textContent='Trama non disponibile ('+e.message+')';
+  }
+  loading.delete(s.id);renderDetailIf(s);
 }
-function setCustom(v){cur.custom=v;save();render();$('#dImg').src=poster(cur)}
+function renderDetailIf(s){if(cur===s&&$('#detail').classList.contains('on'))renderDetail()}
+function setCustom(v){cur.custom=v;save();render();$('#dImg').src=poster(cur,'w500')}
 
+/* ---------- episodi ---------- */
+function openEps(){
+  const s=cur,ss=s.seasons||[];
+  $('#eTitle').textContent=s.name;
+  const sel=$('#eSeason');sel.innerHTML='';
+  ss.forEach(x=>{const o=document.createElement('option');o.value=x.n;o.textContent='Season '+x.n;sel.appendChild(o)});
+  sel.hidden=ss.length<2;
+  $('#eps').classList.add('on');
+  if(!ss.length){$('#eList').innerHTML='<div class="msg">Dati degli episodi non disponibili. Apri la serie con internet attivo.</div>';return}
+  showSeason(s,ss[0].n);
+}
+async function showSeason(s,n){
+  const L=$('#eList');
+  const key=s.id+'_'+n;
+  if(!epc[key]){
+    L.innerHTML='<div class="msg">Carico…</div>';
+    try{
+      const j=await tmdb(`/tv/${s.id}/season/${n}`,{language:'en-US'});
+      epc[key]=(j.episodes||[]).map(e=>({e:e.episode_number,t:e.name||'',o:e.overview||'',i:e.still_path||''}));
+      saveEps();
+    }catch(err){L.innerHTML='';const m=document.createElement('div');m.className='msg';m.textContent=err.message;L.appendChild(m);return}
+  }
+  if(cur!==s||+$('#eSeason').value!==n&&!$('#eSeason').hidden)return;
+  L.innerHTML='';
+  if(!epc[key].length){L.innerHTML='<div class="msg">Nessun episodio disponibile.</div>';return}
+  epc[key].forEach(e=>{
+    const d=document.createElement('div');d.className='ep';
+    const st=document.createElement('div');st.className='still';
+    if(e.i){const im=document.createElement('img');im.loading='lazy';im.src=IMG+'w300'+e.i;st.appendChild(im)}
+    const t=document.createElement('div');t.className='et';t.textContent=`E${e.e} · ${e.t||'Episode '+e.e}`;
+    d.append(st,t);
+    if(e.o){const o=document.createElement('div');o.className='eo';o.textContent=e.o;d.appendChild(o)}
+    L.appendChild(d);
+  });
+  L.scrollTop=0;
+}
+
+/* ---------- eventi ---------- */
+$('#bList').onclick=e=>{e.stopPropagation();$('#menu').classList.toggle('on')};
+document.addEventListener('click',()=>$('#menu').classList.remove('on'));
 $('#bSort').onclick=()=>{sort=sort==='az'?'recent':'az';localStorage.setItem('sort',sort);render()};
 $('#bAdd').onclick=()=>{$('#search').classList.add('on');$('#q').focus()};
 $('#sClose').onclick=()=>$('#search').classList.remove('on');
 $('#sGo').onclick=doSearch;
 $('#q').onkeydown=e=>{if(e.key==='Enter')doSearch()};
+document.querySelectorAll('#pick button[data-l]').forEach(b=>b.onclick=()=>addPending(b.dataset.l));
+$('#pickX').onclick=()=>{pending=null;$('#pick').classList.remove('on')};
+$('#pick').onclick=e=>{if(e.target.id==='pick'){pending=null;$('#pick').classList.remove('on')}};
+
 $('#dClose').onclick=()=>$('#detail').classList.remove('on');
+$('#dEps').onclick=openEps;
+$('#eClose').onclick=()=>$('#eps').classList.remove('on');
+$('#eSeason').onchange=e=>showSeason(cur,+e.target.value);
 $('#dUrlOk').onclick=()=>{const v=$('#dUrl').value.trim();if(v)setCustom(v)};
-$('#dReset').onclick=()=>{delete cur.custom;save();render();$('#dImg').src=poster(cur)};
+$('#dReset').onclick=()=>{delete cur.custom;save();render();$('#dImg').src=poster(cur,'w500')};
 $('#dDel').onclick=()=>{if(confirm('Rimuovere “'+cur.name+'”?')){db=db.filter(s=>s!==cur);save();render();$('#detail').classList.remove('on')}};
 $('#dFile').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{
@@ -244,15 +438,38 @@ $('#dTmdb').onclick=async()=>{
     j.posters.slice(0,24).forEach(p=>{
       const d=document.createElement('div');d.className='c';
       d.innerHTML=`<img src="${IMG}w185${p.file_path}">`;
-      d.onclick=()=>{cur.path=p.file_path;delete cur.custom;save();render();$('#dImg').src=poster(cur)};
+      d.onclick=()=>{cur.path=p.file_path;delete cur.custom;save();render();$('#dImg').src=poster(cur,'w500')};
       $('#alts').appendChild(d);
     });
   }catch(e){$('#alts').innerHTML='<div class="msg">'+e.message+'</div>'}
 };
 
-$('#bSet').onclick=()=>{$('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';$('#kAuto').checked=!!cfg.auto;$('#settings').classList.add('on')};
+/* progresso */
+$('#pMinus').onclick=()=>{cur.prog=Math.max(0,(cur.prog||0)-1);save();renderProg(cur)};
+$('#pPlus').onclick=()=>{
+  const t=total(cur);
+  cur.prog=(cur.prog||0)+1;
+  if(t&&cur.prog>t)cur.prog=t;
+  save();renderProg(cur);
+  if(t&&cur.prog===t&&confirm('Serie finita! Spostarla in Viste?')){cur.list='viste';save();render();renderDetail()}
+};
+$('#pTot').onclick=()=>{
+  const v=prompt('Numero totale di episodi',total(cur)||'');
+  const n=Math.round(Number(v));
+  if(v!==null&&n>0){cur.epsTotal=n;save();renderProg(cur)}
+};
+
+/* impostazioni */
+$('#bSet').onclick=()=>{
+  $('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';
+  $('#kAuto').checked=!!cfg.auto;$('#kCols').value=String(cfg.cols||6);
+  $('#settings').classList.add('on');
+};
 $('#stClose').onclick=()=>$('#settings').classList.remove('on');
-$('#stSave').onclick=()=>{cfg={tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked};localStorage.setItem('cfg',JSON.stringify(cfg));$('#settings').classList.remove('on')};
+$('#stSave').onclick=()=>{
+  cfg={tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked,cols:+$('#kCols').value};
+  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();$('#settings').classList.remove('on');
+};
 $('#fixT').onclick=async()=>{
   let i=0;
   try{
@@ -267,12 +484,17 @@ $('#fixT').onclick=async()=>{
 $('#exp').onclick=()=>{
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));
-  a.download='serie-viste-backup.json';a.click();
+  a.download='k-list-backup.json';a.click();
 };
 $('#imp').onclick=()=>$('#impf').click();
 $('#impf').onchange=async e=>{
-  try{const j=JSON.parse(await e.target.files[0].text());if(Array.isArray(j)){db=j;save();render();alert('Importato')}}catch(_){alert('File non valido')}
+  try{
+    const j=JSON.parse(await e.target.files[0].text());
+    if(Array.isArray(j)){j.forEach(s=>{if(!LISTS[s.list])s.list='viste'});db=j;save();render();alert('Importato')}
+  }catch(_){alert('File non valido')}
 };
+
+applyCols();
 render();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>

@@ -224,7 +224,7 @@ function render(){
     e.innerHTML=db.length?'Nessuna serie in questa lista.':'Nessuna serie.<br>Premi “+ Aggiungi” per iniziare.<br><br>Prima inserisci la chiave TMDB in ⚙';
     g.appendChild(e);
   }
-  const list=sort==='az'?[...inList].sort((a,b)=>a.name.localeCompare(b.name,'it',{sensitivity:'base',ignorePunctuation:true})):inList;
+  const list=sort==='az'?[...inList].sort((a,b)=>a.name.localeCompare(b.name,'en',{sensitivity:'base'})):inList;
   list.forEach(s=>{
     const d=document.createElement('div');d.className='it';
     const c=document.createElement('div');c.className='c';

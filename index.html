@@ -202,6 +202,28 @@ let sort=localStorage.getItem('sort')||'recent';
 let view=localStorage.getItem('view');if(!LISTS[view])view='viste';
 const loading=new Set();
 
+/* ---------- tasto/gesto indietro: chiude solo l'ultima schermata aperta ---------- */
+const stack=[];
+const LAY={search:'#search',detail:'#detail',eps:'#eps',settings:'#settings',pick:'#pick',menu:'#menu'};
+function openLayer(n){
+  if(stack.includes(n))return;
+  $(LAY[n]).classList.add('on');
+  stack.push(n);
+  try{history.pushState({l:n},'')}catch(e){}
+}
+function closeLayer(n){
+  if(!stack.includes(n))return;
+  if(stack[stack.length-1]===n){history.back();return}
+  stack.splice(stack.indexOf(n),1);
+  $(LAY[n]).classList.remove('on');
+}
+window.addEventListener('popstate',()=>{
+  const n=stack.pop();
+  if(!n)return;
+  $(LAY[n]).classList.remove('on');
+  if(n==='pick')pending=null;
+});
+
 const save=()=>{try{localStorage.setItem('serie',JSON.stringify(db))}catch(e){alert('Memoria piena: usa URL invece di caricare immagini grandi.')}};
 const saveEps=()=>{try{localStorage.setItem('eps',JSON.stringify(epc))}catch(e){}};
 const poster=(s,w='w342')=>s.custom||(s.path?IMG+w+s.path:'');
@@ -241,7 +263,7 @@ function renderMenu(){
   Object.entries(LISTS).forEach(([k,v])=>{
     const b=document.createElement('button');if(k===view)b.className='cur';
     b.innerHTML=`${v} <span>${db.filter(s=>s.list===k).length}</span>`;
-    b.onclick=e=>{e.stopPropagation();view=k;localStorage.setItem('view',k);m.classList.remove('on');render()};
+    b.onclick=e=>{e.stopPropagation();view=k;localStorage.setItem('view',k);closeLayer('menu');render()};
     m.appendChild(b);
   });
 }
@@ -275,7 +297,7 @@ async function doSearch(){
         if(db.some(s=>s.id===x.id)) return;
         pending={x,el:d};
         $('#pickT').textContent='Aggiungi “'+x.name+'” a…';
-        $('#pick').classList.add('on');
+        openLayer('pick');
       };
       $('#res').appendChild(d);
     });
@@ -287,7 +309,7 @@ function addPending(l){
   const n={id:x.id,name:x.name,year:(x.first_air_date||'').slice(0,4),path:x.poster_path,list:l};
   if(cfg.auto&&cfg.pic) n.custom=picUrl(n);
   db.unshift(n);save();render();el.classList.add('done');
-  $('#pick').classList.remove('on');
+  closeLayer('pick');
 }
 
 /* ---------- scheda ---------- */
@@ -295,7 +317,7 @@ function openDetail(id){
   cur=db.find(s=>s.id===id);if(!cur)return;
   $('#dUrl').value='';$('#alts').innerHTML='';$('#dDel').blur();
   renderDetail();
-  $('#detail').classList.add('on');
+  openLayer('detail');
   $('#detail .body').scrollTop=0;
   if(cur.v!==2) loadMeta(cur);
 }
@@ -364,7 +386,7 @@ function openEps(){
   const sel=$('#eSeason');sel.innerHTML='';
   ss.forEach(x=>{const o=document.createElement('option');o.value=x.n;o.textContent='Season '+x.n;sel.appendChild(o)});
   sel.hidden=ss.length<2;
-  $('#eps').classList.add('on');
+  openLayer('eps');
   if(!ss.length){$('#eList').innerHTML='<div class="msg">Dati degli episodi non disponibili. Apri la serie con internet attivo.</div>';return}
   showSeason(s,ss[0].n);
 }
@@ -395,24 +417,24 @@ async function showSeason(s,n){
 }
 
 /* ---------- eventi ---------- */
-$('#bList').onclick=e=>{e.stopPropagation();$('#menu').classList.toggle('on')};
-document.addEventListener('click',()=>$('#menu').classList.remove('on'));
+$('#bList').onclick=e=>{e.stopPropagation();stack.includes('menu')?closeLayer('menu'):openLayer('menu')};
+document.addEventListener('click',()=>closeLayer('menu'));
 $('#bSort').onclick=()=>{sort=sort==='az'?'recent':'az';localStorage.setItem('sort',sort);render()};
-$('#bAdd').onclick=()=>{$('#search').classList.add('on');$('#q').focus()};
-$('#sClose').onclick=()=>$('#search').classList.remove('on');
+$('#bAdd').onclick=()=>{openLayer('search');$('#q').focus()};
+$('#sClose').onclick=()=>closeLayer('search');
 $('#sGo').onclick=doSearch;
 $('#q').onkeydown=e=>{if(e.key==='Enter')doSearch()};
 document.querySelectorAll('#pick button[data-l]').forEach(b=>b.onclick=()=>addPending(b.dataset.l));
-$('#pickX').onclick=()=>{pending=null;$('#pick').classList.remove('on')};
-$('#pick').onclick=e=>{if(e.target.id==='pick'){pending=null;$('#pick').classList.remove('on')}};
+$('#pickX').onclick=()=>closeLayer('pick');
+$('#pick').onclick=e=>{if(e.target.id==='pick')closeLayer('pick')};
 
-$('#dClose').onclick=()=>$('#detail').classList.remove('on');
+$('#dClose').onclick=()=>closeLayer('detail');
 $('#dEps').onclick=openEps;
-$('#eClose').onclick=()=>$('#eps').classList.remove('on');
+$('#eClose').onclick=()=>closeLayer('eps');
 $('#eSeason').onchange=e=>showSeason(cur,+e.target.value);
 $('#dUrlOk').onclick=()=>{const v=$('#dUrl').value.trim();if(v)setCustom(v)};
 $('#dReset').onclick=()=>{delete cur.custom;save();render();$('#dImg').src=poster(cur,'w500')};
-$('#dDel').onclick=()=>{if(confirm('Rimuovere “'+cur.name+'”?')){db=db.filter(s=>s!==cur);save();render();$('#detail').classList.remove('on')}};
+$('#dDel').onclick=()=>{if(confirm('Rimuovere “'+cur.name+'”?')){db=db.filter(s=>s!==cur);save();render();closeLayer('detail')}};
 $('#dFile').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{
   const f=e.target.files[0];if(!f)return;
@@ -463,12 +485,12 @@ $('#pTot').onclick=()=>{
 $('#bSet').onclick=()=>{
   $('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';
   $('#kAuto').checked=!!cfg.auto;$('#kCols').value=String(cfg.cols||6);
-  $('#settings').classList.add('on');
+  openLayer('settings');
 };
-$('#stClose').onclick=()=>$('#settings').classList.remove('on');
+$('#stClose').onclick=()=>closeLayer('settings');
 $('#stSave').onclick=()=>{
   cfg={tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked,cols:+$('#kCols').value};
-  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();$('#settings').classList.remove('on');
+  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();closeLayer('settings');
 };
 $('#fixT').onclick=async()=>{
   let i=0;

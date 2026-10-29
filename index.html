@@ -69,6 +69,7 @@
   .mrow{display:flex;gap:8px;overflow-x:auto;margin:4px 0 6px;padding-bottom:2px;scrollbar-width:none}
   .mrow::-webkit-scrollbar{display:none}
   .mrow button{flex:none;white-space:nowrap}
+  .csrow{margin-top:18px}
   .mlbtn{display:block;margin:18px auto 6px}
   .credit{text-align:center;color:#6b6b78;font-size:10px;margin:22px 0 6px}
   .mgrp{margin-top:14px;padding-top:2px}
@@ -195,6 +196,7 @@
       </div>
       <p id="dPlot"></p>
       <div id="dCast" class="cast"></div>
+      <div class="csrow"><button id="dCs">Cerca in CloudStream</button><div class="msg" id="dCsMsg" style="padding:8px 0 0" hidden></div></div>
       <div id="dSugg" hidden>
         <div class="sec">Suggeriti</div>
         <div class="sgrow" id="dSgRow"></div>
@@ -672,6 +674,7 @@ function renderDetail(){
   $('#dTitle').textContent=s.name;
   $('#dSub').textContent=[s.year,tv?(s.eps?s.eps+' episodes':''):runtimeText(s.runtime)].filter(Boolean).join(' • ');
   renderVote(s);
+  if(csFor!==s)$('#dCsMsg').hidden=true;
   $('#dEps').hidden=!tv;
   $('#dTr').hidden=!s.tr;
   $('#dAdd').hidden=mine;
@@ -1011,6 +1014,34 @@ $('#eClose').onclick=()=>closeLayer('eps');
 $('#aClose').onclick=()=>closeLayer('actor');
 $('#eSeason').onchange=e=>showSeason(cur,+e.target.value);
 $('#dAdd').onclick=()=>askList(cur,null);
+/* apre CloudStream sulla ricerca del titolo (anche versione pre-release) */
+let csTry=0,csFor=null;
+$('#dCs').onclick=()=>{
+  if(!cur)return;
+  if(csFor!==cur){csFor=cur;csTry=0}
+  const q=encodeURIComponent(cur.name||'');
+  const urls=[
+    `cloudstreamsearch://${q}`,
+    `intent://${q}#Intent;scheme=cloudstreamsearch;end`,
+    `intent://${q}#Intent;scheme=cloudstreamsearch;package=com.lagradost.cloudstream3.prerelease;end`,
+    `intent://${q}#Intent;scheme=cloudstreamsearch;package=com.lagradost.cloudstream3;end`
+  ];
+  const n=csTry%urls.length;csTry++;
+  const a=document.createElement('a');a.href=urls[n];a.rel='noopener';
+  document.body.appendChild(a);a.click();a.remove();
+  const m=$('#dCsMsg');m.hidden=true;
+  let left=false;
+  const off=()=>{left=true};
+  window.addEventListener('blur',off,{once:true});
+  document.addEventListener('visibilitychange',off,{once:true});
+  setTimeout(()=>{
+    window.removeEventListener('blur',off);document.removeEventListener('visibilitychange',off);
+    if(!left&&!document.hidden){
+      m.textContent=`CloudStream non si è aperto. Controlla che sia installato, oppure tocca di nuovo per provare un altro metodo (${csTry%urls.length+1}/${urls.length}).`;
+      m.hidden=false;
+    }
+  },1800);
+};
 $('#dTr').onclick=()=>{
   if(!cur||!cur.tr)return;
   /* il lettore viene creato e rimosso ogni volta, cosi non aggiunge voci alla cronologia (il gesto indietro resta in ordine) */

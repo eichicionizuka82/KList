@@ -61,10 +61,27 @@
   .info h2{margin:0 0 6px;font-size:21px;line-height:1.2}
   .sub{color:var(--mut)}
   .pad{padding:0 14px 28px}
-  .gen{margin-top:18px;color:#b9b9c6;font-size:14px}
-  .gen:empty{display:none}
+  .genrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+  .genrow[hidden]{display:none}
+  .gen{color:#b9b9c6;font-size:14px;flex:1;min-width:0}
+  .trb{background:none;color:#4da3ff;font-weight:600;font-size:14px;padding:6px 0 6px 10px;white-space:nowrap;flex:none}
+  .trb[hidden]{display:none}
+  .links{display:flex;gap:30px;flex-wrap:wrap}
+  .fab.home{left:auto;right:10px;display:flex;align-items:center;justify-content:center}
+  .bar .hm{display:flex;align-items:center;justify-content:center;padding:9px 12px}
+  .sh{margin:34px 0 0;font-size:17px;font-weight:700}
+  .sh.first{margin-top:6px}
+  .stats{display:flex;gap:12px;margin-top:12px}
+  .sc{flex:1;min-width:0;background:var(--panel);border-radius:16px;padding:16px 10px;text-align:center}
+  .sc h4{margin:0;font-size:13px;letter-spacing:.5px;font-weight:600}
+  .sc .big{font-size:22px;font-weight:700;margin:12px 0 6px}
+  .sc .lab{font-size:13px}
+  .sc .sm{font-size:12px;color:var(--mut);margin-top:8px}
+  .savebar{padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid #23232e}
+  .savebar button{width:100%;padding:13px}
+  .ep .et{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
   #dPlot{line-height:1.5;margin:18px 0 0;color:#d6d6de}
-  .linkbtn{display:block;background:none;padding:10px 0 0;color:#4da3ff;font-weight:600}
+  .linkbtn{display:inline-block;background:none;padding:14px 4px 6px 0;color:#4da3ff;font-weight:600}
   .linkbtn[hidden]{display:none}
   .cast{display:flex;gap:12px;overflow-x:auto;margin-top:16px}
   .cast:empty{display:none}
@@ -142,6 +159,7 @@
 <!-- scheda -->
 <div class="sheet" id="detail">
   <button class="fab" id="dClose">←</button>
+  <button class="fab home" id="dHome" aria-label="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></button>
   <div class="body">
     <div class="hero" id="dHero"><i></i></div>
     <div class="head">
@@ -149,13 +167,15 @@
       <div class="info">
         <h2 id="dTitle"></h2>
         <div class="sub" id="dSub"></div>
-        <button class="linkbtn" id="dEps">Episodi ›</button>
-        <button class="linkbtn" id="dTr" hidden>Trailer ›</button>
+        <div class="links">
+          <button class="linkbtn" id="dEps">Episodi ›</button>
+          <button class="linkbtn" id="dTr" hidden>Trailer ›</button>
+        </div>
       </div>
     </div>
     <div class="pad">
-      <button id="dAdd" class="p" hidden style="width:100%;margin-bottom:6px">Aggiungi a…</button>
-      <div class="gen" id="dGen"></div>
+      <button id="dAdd" class="p" hidden style="width:100%;margin:26px 0 4px">Aggiungi a…</button>
+      <div class="genrow" id="dGenRow"><div class="gen" id="dGen"></div><button class="trb" id="dTrP" hidden>Traduci</button></div>
       <div class="prog" id="dProg" hidden>
         <div class="pbar"><i id="pFill"></i></div>
         <div class="prow"><button id="pMinus">−</button><span><span id="pCur">0</span> / <button class="lnk" id="pTot">?</button></span><button id="pPlus">+</button></div>
@@ -199,6 +219,7 @@
   <div class="bar">
     <button id="aClose">←</button>
     <strong id="aTitle" style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></strong>
+    <button id="aHome" class="hm" aria-label="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></button>
   </div>
   <div class="body" id="aBody"></div>
 </div>
@@ -216,6 +237,15 @@
 <div class="sheet" id="settings">
   <div class="bar"><button id="stClose">✕ Chiudi</button></div>
   <div class="body">
+    <div class="sh first">Statistiche</div>
+    <div class="stats">
+      <div class="sc"><h4>SERIE</h4><div class="big" id="stTvT">–</div><div class="lab">Completate</div><div class="sm" id="stTvN"></div></div>
+      <div class="sc"><h4>FILM</h4><div class="big" id="stMvT">–</div><div class="lab">Completati</div><div class="sm" id="stMvN"></div></div>
+    </div>
+    <div class="row"><button id="stUpd">Aggiorna statistiche</button></div>
+    <div id="stMsg" class="msg" style="padding:10px 0 0"></div>
+
+    <div class="sh">Integrazioni</div>
     <label>Chiave API TMDB (v3) oppure Read Access Token (v4)</label>
     <input id="kTmdb" style="width:100%" autocomplete="off">
     <label>Link Pictorium (modello con {type}, {tmdb_id|imdb_id}, {shape})</label>
@@ -226,13 +256,18 @@
     <label>Tipo Pictorium per i film</label>
     <input id="kPicMt" style="width:100%" autocomplete="off" placeholder="movie">
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="kAutoMovie"> Usa Pictorium per i nuovi film</label>
+
+    <div class="sh">Aspetto</div>
     <label>Locandine per riga in orizzontale</label>
     <select id="kCols"><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
-    <div class="row"><button id="stSave" class="p">Salva</button></div>
-    <div class="row" style="margin-top:24px"><button id="fixT">Aggiorna titoli in inglese</button></div>
-    <div id="fixMsg" class="msg"></div>
+
+    <div class="sh">Aggiornamento</div>
+    <div class="row"><button id="fixT">Aggiorna titoli in inglese</button></div>
+    <div id="fixMsg" class="msg" style="padding:10px 0 0"></div>
     <div class="row"><button id="fixM">Scarica generi e dettagli di tutti</button></div>
-    <div id="fixMMsg" class="msg"></div>
+    <div id="fixMMsg" class="msg" style="padding:10px 0 0"></div>
+
+    <div class="sh">Backup</div>
     <div class="row">
       <button id="exp">Esporta backup</button>
       <button id="imp">Importa backup</button>
@@ -240,6 +275,7 @@
     </div>
     <p class="msg">I dati restano solo su questo telefono.</p>
   </div>
+  <div class="savebar"><button id="stSave" class="p">Salva</button></div>
 </div>
 
 <!-- scelta lista all'aggiunta -->
@@ -289,6 +325,46 @@ const loading=new Set();
 const dstack=[];          /* storia delle schede aperte una sopra l'altra */
 const inDb=s=>db.includes(s);
 const findDb=(t,id)=>db.find(s=>ty(s)===t&&s.id===id);
+const isDone=(t,id)=>{const x=findDb(t,id);return !!x&&x.list===DEF[t]};   /* la spunta verde: solo se e' nei completati */
+const astack=[];          /* storia delle filmografie aperte una sopra l'altra */
+let homing=false;
+
+/* ---------- traduzione (solo testi inglesi -> italiano) ---------- */
+let trc=jget('trc',{});
+const trOn=new Set();
+const saveTrc=()=>{try{localStorage.setItem('trc',JSON.stringify(trc))}catch(e){}};
+const EN_W=new Set('the and of to is was that with for his her he she they their this but not are from by on as be at an or you your have has had who what when will would after while into about out over'.split(' '));
+const IT_W=new Set('il lo la le gli di del della dei che e è un una per con non sono come ma si da nel nella al alla suo sua loro anche quando dove cui più dopo mentre'.split(' '));
+function isEn(t){
+  const w=(t||'').toLowerCase().match(/[a-zàèéìòù']+/g)||[];
+  if(w.length<4)return false;
+  let e=0,i=0;w.forEach(x=>{if(EN_W.has(x))e++;if(IT_W.has(x))i++});
+  return e>=1&&e>i;
+}
+async function translate(text){
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=it&dt=t&q='+encodeURIComponent(text));
+    if(!r.ok)throw 0;
+    const j=await r.json();
+    const out=(j[0]||[]).map(x=>x[0]||'').join('');
+    if(out)return out;
+  }catch(e){}
+  try{
+    const parts=text.match(/[^.!?]+[.!?]*\s*/g)||[text],chunks=[];let c='';
+    parts.forEach(p=>{if((c+p).length>450&&c){chunks.push(c);c=''}c+=p});
+    if(c)chunks.push(c);
+    const outs=[];
+    for(const q of chunks){
+      const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|it&q='+encodeURIComponent(q));
+      const j=await r.json();
+      if(!j.responseData||j.responseStatus!=200)throw 0;
+      outs.push(j.responseData.translatedText);
+    }
+    const o=outs.join(' ').trim();
+    if(o)return o;
+  }catch(e){}
+  throw new Error('Traduzione non disponibile ora. Riprova più tardi.');
+}
 
 /* ---------- tasto/gesto indietro: chiude solo l'ultima schermata aperta ---------- */
 const stack=[];
@@ -318,6 +394,14 @@ window.addEventListener('popstate',()=>{
   if(!n)return;
   if(n==='pick')pending=null;
   if(n==='trailer')$('#tBox').innerHTML='';
+  if(n==='settings'&&settingsDirty()&&confirm('Salvare le modifiche alle impostazioni?'))saveSettings();
+  if(n==='actor'){
+    astack.pop();
+    if(astack.length){
+      const e=astack[astack.length-1];
+      renderActor(e.a).then(()=>{$('#aBody').scrollTop=e.y});
+    }
+  }
   if(n==='detail'){
     dstack.pop();
     if(dstack.length){
@@ -327,7 +411,12 @@ window.addEventListener('popstate',()=>{
   }
   if(!stack.includes(n))$(LAY[n]).classList.remove('on');
   zfix();
+  if(homing){if(stack.length)history.back();else homing=false}
 });
+function goHome(){
+  if(!stack.length)return;
+  homing=true;history.back();
+}
 
 const save=()=>{try{localStorage.setItem('serie',JSON.stringify(db))}catch(e){alert('Memoria piena: usa URL invece di caricare immagini grandi.')}};
 const saveEps=()=>{try{localStorage.setItem('eps',JSON.stringify(epc))}catch(e){}};
@@ -418,8 +507,7 @@ function showMenu(kind,btn){
     });
   }
   const h=$('#hd').getBoundingClientRect(),r=btn.getBoundingClientRect();
-  /* il menu delle serie sta a destra, per non coprire il pulsante Film sulla riga sotto */
-  const want=kind==='tv'?h.width-m.offsetWidth-12:r.left-h.left;
+  const want=r.left-h.left;   /* il menu si apre esattamente sotto il pulsante */
   const left=Math.max(8,Math.min(want,h.width-m.offsetWidth-8));
   m.style.left=left+'px';
   m.style.top=(r.bottom-h.top+2)+'px';
@@ -483,6 +571,7 @@ function addItem(l){
   closeLayer('pick');
   if(cur===item)renderDetail();
   renderSugg();
+  if(item.v===3&&T==='tv'&&item.ms!==1)calcMin(item).then(()=>save()).catch(()=>{});
 }
 
 /* ---------- scheda ---------- */
@@ -506,12 +595,17 @@ function renderDetail(){
   $('#dImg').src=poster(s,'w500');
   $('#dTitle').textContent=s.name;
   $('#dSub').textContent=[s.year,tv?(s.eps?s.eps+' episodes':''):runtimeText(s.runtime)].filter(Boolean).join(' • ');
-  $('#dEps').hidden=!tv||!mine;
+  $('#dEps').hidden=!tv;
   $('#dTr').hidden=!s.tr;
   $('#dAdd').hidden=mine;
   $('#dEdit').hidden=!mine;
   $('#dGen').textContent=(s.genres||[]).join(' • ');
-  $('#dPlot').textContent=s.overview||(loading.has(s)?'Carico la trama…':'Trama non disponibile.');
+  const pk='p'+ty(s)+s.id,tron=trOn.has(pk)&&!!trc[pk];
+  $('#dPlot').textContent=tron?trc[pk]:(s.overview||(loading.has(s)?'Carico la trama…':'Trama non disponibile.'));
+  const tb=$('#dTrP');
+  tb.hidden=!(s.overview&&(tron||isEn(s.overview)));
+  tb.disabled=false;tb.textContent=tron?'Originale':'Traduci';
+  $('#dGenRow').hidden=!(s.genres||[]).length&&tb.hidden;
   renderCast(s);
   renderProg(s);
   renderSugg();
@@ -564,6 +658,7 @@ async function fetchMeta(s){
   s.genres=(d.genres||[]).map(g=>g.name);
   s.gi=(d.genres||[]).map(g=>g.id);
   if(T==='tv'){
+    s.ert=(d.episode_run_time&&d.episode_run_time[0])||(d.last_episode_to_air&&d.last_episode_to_air.runtime)||0;
     s.eps=d.number_of_episodes||0;
     s.seasons=(d.seasons||[]).filter(x=>x.season_number>0&&x.episode_count>0).map(x=>({n:x.season_number,c:x.episode_count}));
   }else{
@@ -583,6 +678,25 @@ async function loadMeta(s){
   }
   loading.delete(s);renderDetailIf(s);
   if(s.v===3)loadSugg(s);
+  if(s.v===3&&ty(s)==='tv'&&inDb(s)&&s.ms!==1)calcMin(s).then(()=>save()).catch(()=>{});
+}
+/* durata totale di una serie: somma delle durate di tutti gli episodi (per le statistiche) */
+async function calcMin(s){
+  if(s.ert===undefined){
+    const d=await tmdb(`/tv/${s.id}`,{language:'en-US'});
+    s.ert=(d.episode_run_time&&d.episode_run_time[0])||(d.last_episode_to_air&&d.last_episode_to_air.runtime)||0;
+  }
+  let sum=0,known=0,cnt=0;
+  for(const x of (s.seasons||[])){
+    const j=await tmdb(`/tv/${s.id}/season/${x.n}`,{language:'en-US'});
+    (j.episodes||[]).forEach(e=>{cnt++;if(e.runtime>0){sum+=e.runtime;known++}});
+  }
+  if(!cnt)s.m=(s.ert||0)*total(s);
+  else{
+    const avg=known?sum/known:(s.ert||0);
+    s.m=Math.round(sum+(cnt-known)*avg);
+  }
+  s.mok=s.m>0;s.ms=1;
 }
 function renderDetailIf(s){if(cur===s&&$('#detail').classList.contains('on'))renderDetail()}
 function setCustom(v){cur.custom=v;save();render();$('#dImg').src=poster(cur,'w500')}
@@ -637,7 +751,7 @@ function renderSugg(){
     const d=document.createElement('div');d.className='sgi';
     const c=document.createElement('div');c.className='c';
     const im=document.createElement('img');im.loading='lazy';im.src=IMG+'w185'+x.p;c.appendChild(im);
-    if(findDb(t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
+    if(isDone(t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
     const n=document.createElement('div');n.className='t';n.textContent=x.n;
     const y=document.createElement('div');y.className='y';y.textContent=x.y;
     d.append(c,n,y);
@@ -667,7 +781,14 @@ async function getFilmo(id){
   try{localStorage.setItem('ac',JSON.stringify(ac))}catch(e){}
   return out;
 }
-async function openActor(a){
+function openActor(a){
+  if(astack.length&&stack.includes('actor'))astack[astack.length-1].y=$('#aBody').scrollTop;
+  astack.push({a,y:0});
+  renderActor(a);
+  openLayer('actor',true);
+  $('#aBody').scrollTop=0;
+}
+async function renderActor(a){
   const tok=++actorToken;
   $('#aTitle').textContent=a.n;
   const B=$('#aBody');B.innerHTML='';
@@ -676,7 +797,6 @@ async function openActor(a){
   const nm=document.createElement('div');nm.className='anm';nm.textContent=a.n;
   hd.append(im,nm);B.appendChild(hd);
   const st=document.createElement('div');st.className='msg';st.textContent='Carico…';B.appendChild(st);
-  openLayer('actor');
   try{
     const list=await getFilmo(a.id);
     if(tok!==actorToken)return;
@@ -692,7 +812,7 @@ async function openActor(a){
         const d=document.createElement('div');d.className='it';
         const c=document.createElement('div');c.className='c';
         if(x.p){const i=document.createElement('img');i.loading='lazy';i.src=IMG+'w185'+x.p;c.appendChild(i)}
-        if(findDb(x.t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
+        if(isDone(x.t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
         const n=document.createElement('div');n.className='t';n.textContent=x.n;
         const y=document.createElement('div');y.className='y';y.textContent=x.y;
         d.append(c,n,y);
@@ -705,13 +825,20 @@ async function openActor(a){
 }
 
 /* ---------- episodi (solo serie) ---------- */
-function openEps(){
-  const s=cur,ss=s.seasons||[];
+async function openEps(){
+  const s=cur;
   $('#eTitle').textContent=s.name;
+  $('#eSeason').hidden=true;
+  openLayer('eps');
+  if(!(s.seasons||[]).length&&s.v!==3){
+    $('#eList').innerHTML='<div class="msg">Carico…</div>';
+    try{await fetchMeta(s);if(inDb(s))save()}catch(e){$('#eList').innerHTML='<div class="msg">'+e.message+'</div>';return}
+    if(cur!==s)return;
+  }
+  const ss=s.seasons||[];
   const sel=$('#eSeason');sel.innerHTML='';
   ss.forEach(x=>{const o=document.createElement('option');o.value=x.n;o.textContent='Season '+x.n;sel.appendChild(o)});
   sel.hidden=ss.length<2;
-  openLayer('eps');
   if(!ss.length){$('#eList').innerHTML='<div class="msg">Dati degli episodi non disponibili. Apri la serie con internet attivo.</div>';return}
   showSeason(s,ss[0].n);
 }
@@ -733,9 +860,33 @@ async function showSeason(s,n){
     const d=document.createElement('div');d.className='ep';
     const st=document.createElement('div');st.className='still';
     if(e.i){const im=document.createElement('img');im.loading='lazy';im.src=IMG+'w300'+e.i;st.appendChild(im)}
-    const t=document.createElement('div');t.className='et';t.textContent=`E${e.e} · ${e.t||'Episode '+e.e}`;
+    const t=document.createElement('div');t.className='et';
+    const tt=document.createElement('span');
+    const tb=document.createElement('button');tb.className='trb';tb.hidden=true;
+    t.append(tt,tb);
     d.append(st,t);
-    if(e.o){const o=document.createElement('div');o.className='eo';o.textContent=e.o;d.appendChild(o)}
+    let o=null;
+    if(e.o){o=document.createElement('div');o.className='eo';d.appendChild(o)}
+    const k=`e${s.id}_${n}_${e.e}`;
+    const paint=()=>{
+      const on=trOn.has(k)&&!!trc[k];
+      tt.textContent=`E${e.e} · ${on?(trc[k].t||e.t):(e.t||'Episode '+e.e)}`;
+      if(o)o.textContent=on?trc[k].o:e.o;
+      tb.hidden=!(e.o&&(on||isEn(e.o)));
+      tb.disabled=false;tb.textContent=on?'Originale':'Traduci';
+    };
+    tb.onclick=async()=>{
+      if(trOn.has(k)){trOn.delete(k);paint();return}
+      if(!trc[k]){
+        tb.disabled=true;tb.textContent='…';
+        try{
+          const [to,tt2]=await Promise.all([translate(e.o),e.t?translate(e.t):Promise.resolve('')]);
+          trc[k]={o:to,t:tt2};saveTrc();
+        }catch(err){alert(err.message);paint();return}
+      }
+      trOn.add(k);paint();
+    };
+    paint();
     L.appendChild(d);
   });
   L.scrollTop=0;
@@ -843,17 +994,83 @@ $('#pTot').onclick=()=>{
 };
 
 /* impostazioni */
+const settingsVals=()=>({tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked,
+  picMt:$('#kPicMt').value.trim()||'movie',autoMovie:$('#kAutoMovie').checked,cols:+$('#kCols').value});
+const curVals=()=>({tmdb:(cfg.tmdb||'').trim(),pic:(cfg.pic||'').trim(),shape:(cfg.shape||'').trim(),auto:!!cfg.auto,
+  picMt:(cfg.picMt||'').trim()||'movie',autoMovie:!!cfg.autoMovie,cols:+(cfg.cols||6)});
+const settingsDirty=()=>JSON.stringify(settingsVals())!==JSON.stringify(curVals());
+function saveSettings(){
+  cfg=settingsVals();
+  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();
+}
+function fmtT(m){
+  const d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60,p=[];
+  if(d)p.push(d+'d');if(h)p.push(h+'h');if(mm||!p.length)p.push(mm+'m');
+  return p.join(' ');
+}
+function calcStats(){
+  const r={tv:{min:0,eps:0,n:0,pend:0,miss:0},movie:{min:0,n:0,pend:0,miss:0}};
+  db.forEach(s=>{
+    const t=ty(s);if(s.list!==DEF[t])return;
+    const o=r[t];o.n++;
+    if(t==='tv'){o.eps+=total(s);if(s.ms!==1)o.pend++;else if(!s.mok)o.miss++;o.min+=s.m||0}
+    else{if(s.v!==3)o.pend++;else if(!s.runtime)o.miss++;o.min+=s.runtime||0}
+  });
+  return r;
+}
+function renderStats(note){
+  const r=calcStats();
+  $('#stTvT').textContent=fmtT(r.tv.min);
+  $('#stTvN').textContent=`${r.tv.eps} episodi, ${r.tv.n} serie`;
+  $('#stMvT').textContent=fmtT(r.movie.min);
+  $('#stMvN').textContent=`${r.movie.n} film`;
+  if(note!==undefined){$('#stMsg').textContent=note;return}
+  const pend=r.tv.pend+r.movie.pend,miss=r.tv.miss+r.movie.miss,parts=[];
+  if(pend)parts.push(`${pend} titoli ancora da calcolare: premi “Aggiorna statistiche”.`);
+  if(miss)parts.push(`${miss} titoli senza durata su TMDB, esclusi dal tempo.`);
+  $('#stMsg').textContent=parts.join(' ');
+}
+$('#stUpd').onclick=async()=>{
+  const todo=db.filter(s=>s.list===DEF[ty(s)]&&(ty(s)==='tv'?s.ms!==1:s.v!==3));
+  if(!todo.length){renderStats('Statistiche già aggiornate.');return}
+  const tot=todo.length;let n=0,err=0,last='',stop=false;
+  $('#stUpd').disabled=true;
+  const worker=async()=>{
+    while(todo.length&&!stop){
+      const s=todo.shift();
+      try{
+        if(s.v!==3)await fetchMeta(s);
+        if(ty(s)==='tv')await calcMin(s);
+      }catch(e){err++;last=e.message;if(/chiave|401|Inserisci/.test(last))stop=true}
+      renderStats(`Calcolo ${++n}/${tot}…`);
+    }
+  };
+  await Promise.all([worker(),worker(),worker()]);
+  save();render();$('#stUpd').disabled=false;
+  renderStats(err?`Finito, ${err} non calcolati (${last}). Riprova più tardi.`:'Statistiche aggiornate.');
+};
 $('#bSet').onclick=()=>{
   $('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';
   $('#kAuto').checked=!!cfg.auto;$('#kPicMt').value=cfg.picMt||'movie';$('#kAutoMovie').checked=!!cfg.autoMovie;
   $('#kCols').value=String(cfg.cols||6);
+  renderStats();
   openLayer('settings');
+  $('#settings .body').scrollTop=0;
 };
 $('#stClose').onclick=()=>closeLayer('settings');
-$('#stSave').onclick=()=>{
-  cfg={tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked,
-       picMt:$('#kPicMt').value.trim()||'movie',autoMovie:$('#kAutoMovie').checked,cols:+$('#kCols').value};
-  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();closeLayer('settings');
+$('#stSave').onclick=()=>{saveSettings();closeLayer('settings')};
+$('#dHome').onclick=goHome;
+$('#aHome').onclick=goHome;
+$('#dTrP').onclick=async()=>{
+  const s=cur,k='p'+ty(s)+s.id,b=$('#dTrP');
+  if(trOn.has(k)){trOn.delete(k);renderDetail();return}
+  if(!trc[k]){
+    b.disabled=true;b.textContent='…';
+    try{trc[k]=await translate(s.overview);saveTrc()}
+    catch(e){alert(e.message);if(cur===s)renderDetail();return}
+  }
+  trOn.add(k);
+  if(cur===s)renderDetail();
 };
 $('#fixT').onclick=async()=>{
   let i=0;

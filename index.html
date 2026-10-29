@@ -66,6 +66,12 @@
   .gen{color:#b9b9c6;font-size:14px;flex:1;min-width:0}
   .trb{background:none;color:#4da3ff;font-weight:600;font-size:14px;padding:6px 0 6px 10px;white-space:nowrap;flex:none}
   .trb[hidden]{display:none}
+  .mrow{display:flex;gap:8px;overflow-x:auto;margin:4px 0 6px;padding-bottom:2px;scrollbar-width:none}
+  .mrow::-webkit-scrollbar{display:none}
+  .mrow button{flex:none;white-space:nowrap}
+  .mlbtn{display:block;margin:18px auto 6px}
+  .credit{text-align:center;color:#6b6b78;font-size:10px;margin:22px 0 6px}
+  .mgrp{margin-top:14px;padding-top:2px}
   .vote{width:46px;height:46px;margin-bottom:8px;position:relative}
   .vote[hidden]{display:none}
   .vote svg{display:block}
@@ -136,6 +142,7 @@
 </head>
 <body>
 <header id="hd">
+  <div class="mrow" id="mrow"></div>
   <div class="hrow">
     <button class="ddb" id="ddTv" data-c="tv"></button>
     <span class="sp"></span>
@@ -239,6 +246,17 @@
   </div>
 </div>
 
+<!-- liste MDBList -->
+<div class="sheet" id="mlist">
+  <div class="bar">
+    <button id="mClose">←</button>
+    <strong id="mTitle" style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></strong>
+    <button id="mRef" class="hm" aria-label="Aggiorna" style="font-size:18px">↻</button>
+    <button id="mHome" class="hm" aria-label="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></button>
+  </div>
+  <div class="body"><div id="mGrid" class="pg"></div><div id="mMsg" class="msg"></div><button id="mMore" class="mlbtn" hidden>Carica altri</button></div>
+</div>
+
 <!-- impostazioni -->
 <div class="sheet" id="settings">
   <div class="bar"><button id="stClose">✕ Chiudi</button></div>
@@ -262,6 +280,11 @@
     <label>Tipo Pictorium per i film</label>
     <input id="kPicMt" style="width:100%" autocomplete="off" placeholder="movie">
     <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="kAutoMovie"> Usa Pictorium per i nuovi film</label>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="kPicAll"> Usa Pictorium anche per i titoli che non ho in lista</label>
+    <label>Chiave API MDBList</label>
+    <input id="kMdb" style="width:100%" autocomplete="off">
+    <label>Liste dei tasti in alto (nome e link MDBList)</label>
+    <div id="mlRows"></div>
 
     <div class="sh">Aspetto</div>
     <label>Locandine per riga in orizzontale</label>
@@ -282,6 +305,7 @@
       <input id="impf" type="file" accept="application/json" hidden>
     </div>
     <p class="msg">I dati restano solo su questo telefono.</p>
+    <p class="credit">K-LIST® an easy catalog created by Aisaka82, powered by Claude IA</p>
   </div>
   <div class="savebar"><button id="stSave" class="p">Salva</button></div>
 </div>
@@ -376,7 +400,7 @@ async function translate(text){
 
 /* ---------- tasto/gesto indietro: chiude solo l'ultima schermata aperta ---------- */
 const stack=[];
-const LAY={search:'#search',detail:'#detail',eps:'#eps',actor:'#actor',trailer:'#trailer',settings:'#settings',pick:'#pick',menu:'#menu',zoom:'#zoom'};
+const LAY={search:'#search',detail:'#detail',eps:'#eps',actor:'#actor',trailer:'#trailer',settings:'#settings',mlist:'#mlist',pick:'#pick',menu:'#menu',zoom:'#zoom'};
 function zfix(){
   Object.keys(LAY).forEach(n=>{
     const i=stack.lastIndexOf(n);
@@ -428,7 +452,40 @@ function goHome(){
 
 const save=()=>{try{localStorage.setItem('serie',JSON.stringify(db))}catch(e){alert('Memoria piena: usa URL invece di caricare immagini grandi.')}};
 const saveEps=()=>{try{localStorage.setItem('eps',JSON.stringify(epc))}catch(e){}};
-const poster=(s,w='w342')=>s.custom||(s.path?IMG+w+s.path:'');
+const picOn=()=>cfg.picAll!==false&&!!(cfg.pic||'').trim();
+const poster=(s,w='w342')=>{
+  if(s.custom)return s.custom;
+  if(!inDb(s)&&picOn()){const u=picUrl(s);if(u)return u}   /* titolo non in lista: locandina Pictorium */
+  return s.path?IMG+w+s.path:'';
+};
+let pc=jget('pc',{});
+async function tmdbPath(t,id){
+  const k=t+id;
+  if(pc[k]!==undefined)return pc[k];
+  try{
+    const d=await tmdb(`/${t}/${id}`,{language:'en-US'});
+    pc[k]=d.poster_path||'';
+    try{localStorage.setItem('pc',JSON.stringify(pc))}catch(e){}
+    return pc[k];
+  }catch(e){return ''}
+}
+/* immagine di un titolo che compare in una griglia: Pictorium se non e' in lista, altrimenti la tua; se fallisce, TMDB */
+function fillImg(img,t,id,path,w){
+  const x=findDb(t,id);
+  let src;
+  if(x)src=poster(x,w);
+  else{
+    const pu=picOn()?picUrl({type:t,id}):'';
+    src=pu||(path?IMG+w+path:'');
+  }
+  const fb=async()=>{
+    img.onerror=null;
+    const p=path||(x&&x.path)||await tmdbPath(t,id);
+    if(p)img.src=IMG+w+p;
+  };
+  img.onerror=fb;
+  if(src)img.src=src;else fb();
+}
 const total=s=>s.epsTotal||s.eps||0;
 function applyCols(){document.documentElement.style.setProperty('--cl',cfg.cols||6)}
 function picUrl(s){
@@ -611,7 +668,7 @@ function renderDetail(){
   const s=cur;if(!s)return;
   const tv=ty(s)==='tv',mine=inDb(s);
   $('#dHero').style.backgroundImage=s.backdrop?`url(${IMG}w780${s.backdrop})`:'';
-  $('#dImg').src=poster(s,'w500');
+  {const im=$('#dImg');im.onerror=()=>{im.onerror=null;const p=cur&&cur.path;if(p)im.src=IMG+'w500'+p};im.src=poster(s,'w500')}
   $('#dTitle').textContent=s.name;
   $('#dSub').textContent=[s.year,tv?(s.eps?s.eps+' episodes':''):runtimeText(s.runtime)].filter(Boolean).join(' • ');
   renderVote(s);
@@ -686,6 +743,7 @@ async function fetchMeta(s){
   if(!s.name) s.name=d.name||d.title||'';
   if(!s.year) s.year=(d.first_air_date||d.release_date||'').slice(0,4);
   s.backdrop=d.backdrop_path||'';
+  if(!s.path&&d.poster_path)s.path=d.poster_path;
   s.va=d.vote_average||0;s.vc=d.vote_count||0;
   s.genres=(d.genres||[]).map(g=>g.name);
   s.gi=(d.genres||[]).map(g=>g.id);
@@ -782,7 +840,7 @@ function renderSugg(){
     const t=ty(s);
     const d=document.createElement('div');d.className='sgi';
     const c=document.createElement('div');c.className='c';
-    const im=document.createElement('img');im.loading='lazy';im.src=IMG+'w185'+x.p;c.appendChild(im);
+    const im=document.createElement('img');im.loading='lazy';fillImg(im,t,x.id,x.p,'w185');c.appendChild(im);
     if(isDone(t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
     const n=document.createElement('div');n.className='t';n.textContent=x.n;
     const y=document.createElement('div');y.className='y';y.textContent=x.y;
@@ -843,7 +901,7 @@ async function renderActor(a){
       items.forEach(x=>{
         const d=document.createElement('div');d.className='it';
         const c=document.createElement('div');c.className='c';
-        if(x.p){const i=document.createElement('img');i.loading='lazy';i.src=IMG+'w185'+x.p;c.appendChild(i)}
+        {const i=document.createElement('img');i.loading='lazy';fillImg(i,x.t,x.id,x.p,'w185');c.appendChild(i)}
         if(isDone(x.t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';c.appendChild(k)}
         const n=document.createElement('div');n.className='t';n.textContent=x.n;
         const y=document.createElement('div');y.className='y';y.textContent=x.y;
@@ -969,9 +1027,9 @@ $('#tClose').onclick=()=>closeLayer('trailer');
 $('#dPoster').onclick=()=>{
   if(!cur)return;
   const z=$('#zImg');
-  const big=cur.custom||(cur.path?IMG+'w780'+cur.path:'');
+  const big=cur.custom||(!inDb(cur)&&picOn()?picUrl(cur):'')||(cur.path?IMG+'w780'+cur.path:'');
   if(!big)return;
-  z.onerror=()=>{z.onerror=null;z.src=poster(cur,'w500')};
+  z.onerror=()=>{z.onerror=null;if(cur&&cur.path)z.src=IMG+'w500'+cur.path};
   z.src=big;
   openLayer('zoom');
 };
@@ -1025,15 +1083,106 @@ $('#pTot').onclick=()=>{
   if(v!==null&&n>0){cur.epsTotal=n;save();renderProg(cur)}
 };
 
+/* ---------- liste MDBList ---------- */
+let ml=jget('ml',{});
+const ML_LIM=40;
+let mlCur=null,mlTok=0;
+function renderMl(){
+  const row=$('#mrow');row.innerHTML='';
+  mlCfg().forEach((L,i)=>{
+    const b=document.createElement('button');b.textContent=L.n;
+    b.onclick=()=>openMl(i);
+    row.appendChild(b);
+  });
+}
+function mlPath(u){
+  u=(u||'').trim().replace(/[?#].*$/,'').replace(/\/+$/,'');
+  const m=u.match(/lists\/([^\/]+)\/([^\/]+)(?:\/[a-z]+)?$/i);
+  if(m)return m[1]+'/'+m[2];
+  return u.replace(/^https?:\/\/[^\/]+\//,'');
+}
+async function mdbFetch(path,off){
+  const key=(cfg.mdb||'').trim();
+  let r;
+  try{r=await fetch(`https://api.mdblist.com/lists/${path}/items?apikey=${encodeURIComponent(key)}&limit=${ML_LIM}&offset=${off}`)}
+  catch(e){throw new Error('Impossibile raggiungere MDBList (rete assente o richiesta bloccata dal browser).')}
+  if(!r.ok)throw new Error('Errore MDBList '+r.status+(r.status===401||r.status===403?' (chiave non valida)':r.status===404?' (lista non trovata, controlla il link)':''));
+  const j=await r.json();
+  let arr;
+  if(Array.isArray(j))arr=j;
+  else arr=[...(j.movies||[]).map(x=>({...x,mediatype:x.mediatype||'movie'})),...(j.shows||[]).map(x=>({...x,mediatype:x.mediatype||'show'}))].sort((a,b)=>(a.rank||0)-(b.rank||0));
+  const items=[];
+  arr.forEach(x=>{
+    const id=x.tmdb_id||x.id;if(!id)return;
+    items.push({t:x.mediatype==='movie'?'movie':'tv',id,n:x.title||x.name||'',y:String(x.release_year||x.year||'')});
+  });
+  return {items,more:arr.length>=ML_LIM};
+}
+function openMl(i){
+  const L=mlCfg()[i];
+  if(!(cfg.mdb||'').trim()){alert('Inserisci la chiave MDBList in ⚙ → Integrazioni');return}
+  if(!L.u){alert('Imposta il link di questa lista in ⚙ → Integrazioni');return}
+  $('#mTitle').textContent=L.n;
+  $('#mGrid').innerHTML='';$('#mMsg').textContent='Carico…';$('#mMore').hidden=true;
+  mlCur={path:mlPath(L.u),items:[],more:false,tok:++mlTok};
+  openLayer('mlist');
+  $('#mlist .body').scrollTop=0;
+  loadMl(false);
+}
+async function loadMl(force){
+  const c=mlCur,tok=c.tok;
+  if(!c.items.length&&!force&&ml[c.path]&&Date.now()-ml[c.path].t<6*3600e3){
+    c.items=ml[c.path].items.slice();c.more=ml[c.path].more;drawMl();return;
+  }
+  $('#mMore').disabled=true;
+  try{
+    const r=await mdbFetch(c.path,c.items.length);
+    if(tok!==mlTok)return;
+    const seen=new Set(c.items.map(x=>x.t+x.id));
+    r.items.forEach(x=>{if(!seen.has(x.t+x.id)){seen.add(x.t+x.id);c.items.push(x)}});
+    c.more=r.more;
+    if(c.items.length<=ML_LIM){ml[c.path]={t:Date.now(),items:c.items.slice(),more:c.more};try{localStorage.setItem('ml',JSON.stringify(ml))}catch(e){}}
+    drawMl();
+  }catch(e){
+    if(tok!==mlTok)return;
+    $('#mMsg').textContent=e.message;$('#mMore').disabled=false;
+  }
+}
+function drawMl(){
+  const c=mlCur,G=$('#mGrid');G.innerHTML='';
+  c.items.forEach(x=>{
+    const d=document.createElement('div');d.className='it';
+    const cc=document.createElement('div');cc.className='c';
+    const im=document.createElement('img');im.loading='lazy';fillImg(im,x.t,x.id,'','w185');cc.appendChild(im);
+    if(isDone(x.t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';cc.appendChild(k)}
+    const n=document.createElement('div');n.className='t';n.textContent=x.n;
+    const y=document.createElement('div');y.className='y';y.textContent=x.y;
+    d.append(cc,n,y);
+    d.onclick=()=>openItem(x.t,x.id,x.n,x.y,'');
+    G.appendChild(d);
+  });
+  $('#mMsg').textContent=c.items.length?'':'Lista vuota.';
+  $('#mMore').hidden=!c.more;$('#mMore').disabled=false;
+}
+$('#mClose').onclick=()=>closeLayer('mlist');
+$('#mHome').onclick=goHome;
+$('#mMore').onclick=()=>loadMl(true);
+$('#mRef').onclick=()=>{if(!mlCur)return;mlCur.items=[];mlCur.more=false;$('#mGrid').innerHTML='';$('#mMsg').textContent='Carico…';$('#mMore').hidden=true;loadMl(true)};
+
 /* impostazioni */
+const MLDEF=['Ultime serie','Serie popolari','Serie più votate','Ultimi film','Film popolari','Film più votati'];
+const mlCfg=()=>MLDEF.map((d,i)=>{const x=(cfg.ml||[])[i]||{};return {n:(x.n||'').trim()||d,u:(x.u||'').trim()}});
 const settingsVals=()=>({tmdb:$('#kTmdb').value.trim(),pic:$('#kPic').value.trim(),shape:$('#kShape').value.trim(),auto:$('#kAuto').checked,
-  picMt:$('#kPicMt').value.trim()||'movie',autoMovie:$('#kAutoMovie').checked,cols:+$('#kCols').value});
+  picMt:$('#kPicMt').value.trim()||'movie',autoMovie:$('#kAutoMovie').checked,cols:+$('#kCols').value,
+  picAll:$('#kPicAll').checked,mdb:$('#kMdb').value.trim(),
+  ml:MLDEF.map((d,i)=>({n:$('#mn'+i).value.trim()||d,u:$('#mu'+i).value.trim()}))});
 const curVals=()=>({tmdb:(cfg.tmdb||'').trim(),pic:(cfg.pic||'').trim(),shape:(cfg.shape||'').trim(),auto:!!cfg.auto,
-  picMt:(cfg.picMt||'').trim()||'movie',autoMovie:!!cfg.autoMovie,cols:+(cfg.cols||6)});
+  picMt:(cfg.picMt||'').trim()||'movie',autoMovie:!!cfg.autoMovie,cols:+(cfg.cols||6),
+  picAll:cfg.picAll!==false,mdb:(cfg.mdb||'').trim(),ml:mlCfg()});
 const settingsDirty=()=>JSON.stringify(settingsVals())!==JSON.stringify(curVals());
 function saveSettings(){
   cfg=settingsVals();
-  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();
+  localStorage.setItem('cfg',JSON.stringify(cfg));applyCols();renderMl();
 }
 function fmtT(m){
   const d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60,p=[];
@@ -1085,6 +1234,14 @@ $('#bSet').onclick=()=>{
   $('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';
   $('#kAuto').checked=!!cfg.auto;$('#kPicMt').value=cfg.picMt||'movie';$('#kAutoMovie').checked=!!cfg.autoMovie;
   $('#kCols').value=String(cfg.cols||6);
+  $('#kPicAll').checked=cfg.picAll!==false;$('#kMdb').value=cfg.mdb||'';
+  const box=$('#mlRows');box.innerHTML='';
+  mlCfg().forEach((L,i)=>{
+    const g=document.createElement('div');g.className='mgrp';
+    g.innerHTML=`<input id="mn${i}" style="width:100%" autocomplete="off" placeholder="${MLDEF[i]}"><input id="mu${i}" style="width:100%;margin-top:6px" autocomplete="off" placeholder="Link della lista su mdblist.com">`;
+    box.appendChild(g);
+    g.querySelector('#mn'+i).value=L.n;g.querySelector('#mu'+i).value=L.u;
+  });
   renderStats();
   openLayer('settings');
   $('#settings .body').scrollTop=0;
@@ -1160,6 +1317,7 @@ $('#impf').onchange=async e=>{
 };
 
 applyCols();
+renderMl();
 render();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>

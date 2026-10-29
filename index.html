@@ -66,6 +66,11 @@
   .gen{color:#b9b9c6;font-size:14px;flex:1;min-width:0}
   .trb{background:none;color:#4da3ff;font-weight:600;font-size:14px;padding:6px 0 6px 10px;white-space:nowrap;flex:none}
   .trb[hidden]{display:none}
+  .vote{width:46px;height:46px;margin-bottom:8px;position:relative}
+  .vote[hidden]{display:none}
+  .vote svg{display:block}
+  .vote b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+  .vote b small{font-size:8px;font-weight:600;margin:-6px 0 0 1px}
   .links{display:flex;gap:30px;flex-wrap:wrap}
   .fab.home{left:auto;right:10px;display:flex;align-items:center;justify-content:center}
   .bar .hm{display:flex;align-items:center;justify-content:center;padding:9px 12px}
@@ -165,6 +170,7 @@
     <div class="head">
       <div class="c" id="dPoster"><img id="dImg" alt=""></div>
       <div class="info">
+        <div class="vote" id="dVote" hidden><svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="22" fill="#081c22"/><circle cx="23" cy="23" r="18" fill="none" stroke-width="3.5" id="vTr"/><circle cx="23" cy="23" r="18" fill="none" stroke-width="3.5" stroke-linecap="round" transform="rotate(-90 23 23)" id="vRg"/></svg><b><span id="vNum"></span><small>%</small></b></div>
         <h2 id="dTitle"></h2>
         <div class="sub" id="dSub"></div>
         <div class="links">
@@ -266,6 +272,8 @@
     <div id="fixMsg" class="msg" style="padding:10px 0 0"></div>
     <div class="row"><button id="fixM">Scarica generi e dettagli di tutti</button></div>
     <div id="fixMMsg" class="msg" style="padding:10px 0 0"></div>
+    <div class="row"><button id="fixV">Aggiorna voti</button></div>
+    <div id="fixVMsg" class="msg" style="padding:10px 0 0"></div>
 
     <div class="sh">Backup</div>
     <div class="row">
@@ -297,7 +305,7 @@ const LISTS={
   movie:{visti:'Completati',vedere:'Da vedere'}
 };
 const DEF={tv:'viste',movie:'visti'};
-const SORTS=[['recent','Recenti','Recenti'],['az','A–Z','A–Z'],['za','Z–A','Z–A'],['yd','Anno ↓','Anno · più recenti prima'],['ya','Anno ↑','Anno · più vecchi prima']];
+const SORTS=[['recent','Recenti','Recenti'],['az','A–Z','A–Z'],['za','Z–A','Z–A'],['yd','Anno ↓','Anno · più recenti prima'],['ya','Anno ↑','Anno · più vecchi prima'],['vd','Voto ↓','Voto · più alti prima'],['va','Voto ↑','Voto · più bassi prima']];
 const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'')||d}catch(e){return d}};
 const ty=s=>s.type==='movie'?'movie':'tv';
 function norm(s){
@@ -434,6 +442,7 @@ function runtimeText(m){
   return m>=60?`${Math.floor(m/60)}h ${m%60}m`:`${m}m`;
 }
 const yearOf=s=>{const y=parseInt(s.year,10);return y>=1900?y:0};
+const voteOf=s=>(s.vc>0&&s.va>0)?s.va:0;
 const cmpName=(a,b)=>a.name.localeCompare(b.name,'en',{sensitivity:'base'});
 
 /* ---------- lista ---------- */
@@ -455,6 +464,16 @@ function render(){
   const grouped=sort==='yd'||sort==='ya';
   if(sort==='az')list=[...inList].sort(cmpName);
   else if(sort==='za')list=[...inList].sort((a,b)=>cmpName(b,a));
+  else if(sort==='vd'||sort==='va'){
+    const desc=sort==='vd';
+    list=[...inList].sort((a,b)=>{
+      const va=voteOf(a),vb=voteOf(b);
+      if(!va&&vb)return 1;
+      if(va&&!vb)return -1;
+      if(va!==vb)return desc?vb-va:va-vb;
+      return cmpName(a,b);
+    });
+  }
   else if(grouped){
     const desc=sort==='yd';
     list=[...inList].sort((a,b)=>{
@@ -586,7 +605,7 @@ function openDetail(s){
   renderDetail();
   openLayer('detail',true);
   $('#detail .body').scrollTop=0;
-  if(s.v!==3) loadMeta(s); else loadSugg(s);
+  if(s.v!==3||s.va===undefined) loadMeta(s); else loadSugg(s);
 }
 function renderDetail(){
   const s=cur;if(!s)return;
@@ -595,6 +614,7 @@ function renderDetail(){
   $('#dImg').src=poster(s,'w500');
   $('#dTitle').textContent=s.name;
   $('#dSub').textContent=[s.year,tv?(s.eps?s.eps+' episodes':''):runtimeText(s.runtime)].filter(Boolean).join(' • ');
+  renderVote(s);
   $('#dEps').hidden=!tv;
   $('#dTr').hidden=!s.tr;
   $('#dAdd').hidden=mine;
@@ -615,6 +635,17 @@ function renderDetail(){
     b.onclick=()=>{s.list=k;save();render();renderDetail()};
     mv.appendChild(b);
   });
+}
+function renderVote(s){
+  const box=$('#dVote'),v=voteOf(s);
+  box.hidden=!v;
+  if(!v)return;
+  const pct=Math.round(v*10),col=pct>=70?['#21d07a','#1e5b3a']:pct>=40?['#d2d531','#5d5b17']:['#db2360','#5c1634'];
+  const C=2*Math.PI*18;
+  $('#vNum').textContent=pct;
+  $('#vTr').setAttribute('stroke',col[1]);
+  $('#vRg').setAttribute('stroke',col[0]);
+  $('#vRg').setAttribute('stroke-dasharray',(C*pct/100).toFixed(1)+' '+C.toFixed(1));
 }
 function renderCast(s){
   const box=$('#dCast');box.innerHTML='';
@@ -655,6 +686,7 @@ async function fetchMeta(s){
   if(!s.name) s.name=d.name||d.title||'';
   if(!s.year) s.year=(d.first_air_date||d.release_date||'').slice(0,4);
   s.backdrop=d.backdrop_path||'';
+  s.va=d.vote_average||0;s.vc=d.vote_count||0;
   s.genres=(d.genres||[]).map(g=>g.name);
   s.gi=(d.genres||[]).map(g=>g.id);
   if(T==='tv'){
@@ -1085,7 +1117,7 @@ $('#fixT').onclick=async()=>{
   }catch(e){save();render();$('#fixMsg').textContent=e.message}
 };
 $('#fixM').onclick=async()=>{
-  const todo=db.filter(s=>s.v!==3);
+  const todo=db.filter(s=>s.v!==3||s.va===undefined);
   if(!todo.length){$('#fixMMsg').textContent='Tutti i titoli sono già aggiornati.';return}
   let i=0,err=0,last='';
   for(const s of todo){
@@ -1095,6 +1127,24 @@ $('#fixM').onclick=async()=>{
   }
   save();render();
   $('#fixMMsg').textContent=err?`Finito, ${err} non scaricati (${last}). Riprova più tardi.`:'Generi e dettagli scaricati.';
+};
+$('#fixV').onclick=async()=>{
+  const todo=[...db],tot=todo.length;
+  if(!tot){$('#fixVMsg').textContent='Nessun titolo in lista.';return}
+  let n=0,err=0,last='',stop=false;
+  $('#fixV').disabled=true;
+  const worker=async()=>{
+    while(todo.length&&!stop){
+      const s=todo.shift();
+      try{const d=await tmdb(`/${ty(s)}/${s.id}`,{language:'en-US'});s.va=d.vote_average||0;s.vc=d.vote_count||0}
+      catch(e){err++;last=e.message;if(/chiave|401|Inserisci/.test(last))stop=true}
+      $('#fixVMsg').textContent=`Aggiorno ${++n}/${tot}…`;
+    }
+  };
+  await Promise.all([worker(),worker(),worker()]);
+  save();render();$('#fixV').disabled=false;
+  if(cur)renderDetailIf(cur);
+  $('#fixVMsg').textContent=err?`Finito, ${err} non aggiornati (${last}). Riprova più tardi.`:'Voti aggiornati.';
 };
 $('#exp').onclick=()=>{
   const a=document.createElement('a');

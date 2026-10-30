@@ -116,6 +116,16 @@
   .cfld{margin-top:14px}
   .sw{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
   .sw button{width:34px;height:34px;padding:0;border-radius:50%;border:2px solid #8886}
+  .sw button.cur{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--fg)}
+  .credit a{color:inherit;text-decoration:underline}
+  .gl{color:var(--acc);cursor:pointer}
+  .stype{display:flex;gap:8px;padding:0 12px 6px}
+  .stype button{flex:1;padding:9px}
+  .stype button.on{background:var(--acc);color:var(--onacc)}
+  #hist{margin:0 12px 6px;background:var(--panel);border-radius:10px;overflow:hidden}
+  #hist[hidden]{display:none}
+  #hist button{display:block;width:100%;text-align:left;background:none;padding:12px 14px;border-radius:0}
+  #hist .hclear{color:var(--red);border-top:1px solid var(--line)}
   .sw button.auto{width:auto;border-radius:17px;padding:0 12px;font-size:13px}
   .sw input[type=color]{width:42px;height:34px;padding:0;border:0;background:none}
   .sc{flex:1;min-width:0;background:var(--panel);border-radius:16px;padding:16px 10px;text-align:center}
@@ -201,7 +211,7 @@
   #pick.on{display:flex}
   .pickbox{background:var(--panel);width:100%;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0;display:flex;flex-direction:column;gap:8px}
   .pickbox h3{margin:0 0 6px;font-size:15px}
-  .pickbox button{background:#23232e;padding:14px}
+  .pickbox button{background:var(--p2);padding:14px}
 </style>
 </head>
 <body>
@@ -229,6 +239,8 @@
     <input id="q" type="search" data-i18n-ph="q_def" enterkeyhint="search">
     <button id="sGo" class="p" data-i18n="search"></button>
   </div>
+  <div class="stype" id="sType"><button data-t="tv"></button><button data-t="movie"></button></div>
+  <div id="hist" hidden></div>
   <div class="body"><div id="res" class="res"></div><div id="sMsg" class="msg"></div></div>
 </div>
 
@@ -326,6 +338,7 @@
   <div class="bar">
     <button id="mClose">←</button>
     <strong id="mTitle" style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis"></strong>
+    <button id="mView" class="hm" aria-label="View"></button>
     <button id="mRef" class="hm" aria-label="Aggiorna" style="font-size:18px">↻</button>
     <button id="mHome" class="hm" aria-label="Home"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></button>
   </div>
@@ -344,6 +357,8 @@
       <button class="srow" data-sec="pgInteg"><span data-i18n="integrations"></span><i>›</i></button>
       <button class="srow" data-sec="pgData"><span data-i18n="sec_data"></span><i>›</i></button>
       <p class="credit">K-LIST® an easy catalog created by Aisaka82, powered by Claude IA</p>
+      <p class="credit"><a href="https://github.com/eichicionizuka82/K-List-EasyCatalog-" target="_blank" rel="noopener">This project is open source</a></p>
+      <p class="credit"><a href="https://github.com/eichicionizuka82/K-List-EasyCatalog-/releases/latest/download/k-list.apk" target="_blank" rel="noopener" data-i18n="dl_latest"></a></p>
     </div>
     <div class="spage" id="pgStats" hidden>
     <div class="stats">
@@ -356,7 +371,7 @@
     </div>
     <div class="spage" id="pgLang" hidden>
     <label data-i18n="lbl_lang"></label>
-    <select id="kLang"><option value="it">Italiano</option><option value="en">English</option></select>
+    <select id="kLang"></select>
     <label data-i18n="lbl_trlang"></label>
     <select id="kTrLang"></select>
     <div class="row"><button id="fixT" data-i18n="fix_titles"></button></div>
@@ -472,7 +487,7 @@ it:{add:'+ Aggiungi',search:'Cerca',q_tv:'Cerca serie TV su TMDB…',q_mv:'Cerca
  rm_q:'Rimuovere “{0}”?',rm_ok:'Rimuovi',fin_q:'Serie finita! Spostarla in Completate?',fin_ok:'Sposta',tot_q:'Numero totale di episodi',ok:'Ok',save_q:'Salvare le modifiche alle impostazioni?',discard:'Scarta',
  s_recent:'Recenti',s_old:'Meno recenti',s_az:'A–Z',s_za:'Z–A',s_yd:'Anno ↓',s_ya:'Anno ↑',s_vd:'Voto ↓',s_va:'Voto ↑',
  sf_recent:'Recenti',sf_old:'Meno recenti',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Anno · più recenti prima',sf_ya:'Anno · più vecchi prima',sf_vd:'Voto · più alti prima',sf_va:'Voto · più bassi prima',
- l_viste:'Completate',l_vedere:'Da vedere',l_guardando:'Guardando',l_abbandonate:'Abbandonate',l_visti:'Completati',c_tv:'Serie',c_movie:'Film',sec_lang:'Lingua',sec_theme:'Temi',sec_data:'Dati e backup',set_title:'Impostazioni',th_def:'Predefinito',th_dark:'Scuro',th_light:'Chiaro',th_custom:'Personalizzato',c_bg:'Sfondo',c_acc:'Accento',c_top:'Tasti in alto',c_text:'Testo',c_auto:'Auto',explore:'Explore',view_all:'Vedi tutto',prog_title:'Avanzamento',ml_d0:'Ultime serie',ml_d1:'Serie popolari',ml_d2:'Serie più votate',ml_d3:'Ultimi film',ml_d4:'Film popolari',ml_d5:'Film più votati',ph_mlu:'Link della lista su mdblist.com'},
+ l_viste:'Completate',l_vedere:'Da vedere',l_guardando:'Guardando',l_abbandonate:'Abbandonate',l_visti:'Completati',c_tv:'Serie',c_movie:'Film',sec_lang:'Lingua',sec_theme:'Temi',sec_data:'Dati e backup',set_title:'Impostazioni',th_def:'Predefinito',th_dark:'Scuro',th_light:'Chiaro',th_custom:'Personalizzato',c_bg:'Sfondo',c_acc:'Accento',c_top:'Tasti in alto',c_text:'Testo',c_auto:'Auto',explore:'Explore',view_all:'Vedi tutto',prog_title:'Avanzamento',ml_d0:'Ultime serie',ml_d1:'Serie popolari',ml_d2:'Serie più votate',ml_d3:'Ultimi film',ml_d4:'Film popolari',ml_d5:'Film più votati',ph_mlu:'Link della lista su mdblist.com',hist_clear:'Elimina cronologia',dl_latest:"Scarica l'ultima versione (APK)"},
 en:{add:'+ Add',search:'Search',q_tv:'Search TV series on TMDB…',q_mv:'Search movies on TMDB…',q_def:'Search TMDB…',
  episodes_link:'Episodes ›',trailer_link:'Trailer ›',add_to:'Add to…',suggested:'Suggested',move:'Move',poster_opts:'Poster options',
  orig:'Original',more_posters:'More TMDB posters',remove:'Remove from list',open_yt:'Open on YouTube',load_more:'Load more',close:'✕ Close',
@@ -501,13 +516,23 @@ en:{add:'+ Add',search:'Search',q_tv:'Search TV series on TMDB…',q_mv:'Search 
  rm_q:'Remove “{0}”?',rm_ok:'Remove',fin_q:'Series finished! Move it to Completed?',fin_ok:'Move',tot_q:'Total number of episodes',ok:'OK',save_q:'Save the settings changes?',discard:'Discard',
  s_recent:'Newest',s_old:'Oldest',s_az:'A–Z',s_za:'Z–A',s_yd:'Year ↓',s_ya:'Year ↑',s_vd:'Rating ↓',s_va:'Rating ↑',
  sf_recent:'Newest first',sf_old:'Oldest first',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Year · newest first',sf_ya:'Year · oldest first',sf_vd:'Rating · highest first',sf_va:'Rating · lowest first',
- l_viste:'Completed',l_vedere:'To watch',l_guardando:'Watching',l_abbandonate:'Dropped',l_visti:'Completed',c_tv:'Series',c_movie:'Movies',sec_lang:'Language',sec_theme:'Themes',sec_data:'Data & backup',set_title:'Settings',th_def:'Default',th_dark:'Dark',th_light:'Light',th_custom:'Custom',c_bg:'Background',c_acc:'Accent',c_top:'Top buttons',c_text:'Text',c_auto:'Auto',explore:'Explore',view_all:'View all',prog_title:'Progress',ml_d0:'Latest series',ml_d1:'Popular series',ml_d2:'Top rated series',ml_d3:'Latest movies',ml_d4:'Popular movies',ml_d5:'Top rated movies',ph_mlu:'List link on mdblist.com'}
+ l_viste:'Completed',l_vedere:'To watch',l_guardando:'Watching',l_abbandonate:'Dropped',l_visti:'Completed',c_tv:'Series',c_movie:'Movies',sec_lang:'Language',sec_theme:'Themes',sec_data:'Data & backup',set_title:'Settings',th_def:'Default',th_dark:'Dark',th_light:'Light',th_custom:'Custom',c_bg:'Background',c_acc:'Accent',c_top:'Top buttons',c_text:'Text',c_auto:'Auto',explore:'Explore',view_all:'View all',prog_title:'Progress',ml_d0:'Latest series',ml_d1:'Popular series',ml_d2:'Top rated series',ml_d3:'Latest movies',ml_d4:'Popular movies',ml_d5:'Top rated movies',ph_mlu:'List link on mdblist.com',hist_clear:'Clear history',dl_latest:'Download the latest version (APK)'}
 };
+
+Object.assign(I18N,{
+es:{add:'+ Añadir',search:'Buscar',q_tv:'Buscar series en TMDB…',q_mv:'Buscar películas en TMDB…',q_def:'Buscar en TMDB…',episodes_link:'Episodios ›',trailer_link:'Tráiler ›',add_to:'Añadir a…',suggested:'Sugeridos',move:'Mover',poster_opts:'Opciones del póster',orig:'Original',more_posters:'Más pósters de TMDB',remove:'Quitar de la lista',open_yt:'Abrir en YouTube',load_more:'Cargar más',close:'✕ Cerrar',stats:'Estadísticas',series_u:'SERIES',movies_u:'PELÍCULAS',done_f:'Completadas',done_m:'Completadas',upd_stats:'Actualizar estadísticas',integrations:'Integraciones',lbl_tmdb:'Clave API de TMDB (v3) o Read Access Token (v4)',lbl_pic:'Enlace de Pictorium (plantilla con {type}, {tmdb_id|imdb_id}, {shape})',lbl_shape:'Forma de Pictorium',ph_shape:'p. ej. poster',lbl_auto:'Usar Pictorium para las series nuevas',lbl_picmt:'Tipo de Pictorium para películas',lbl_automv:'Usar Pictorium para las películas nuevas',lbl_picall:'Usar Pictorium también para títulos que no están en mis listas',lbl_mdb:'Clave API de MDBList',lbl_mlrows:'Listas de los botones superiores (nombre y enlace de MDBList)',lbl_nvtv:'Enlace de Nuvio para series (marcadores: {imdb} {tmdb} {titolo})',lbl_nvmv:'Enlace de Nuvio para películas',appearance:'Apariencia',lbl_cols:'Pósters por fila en horizontal',lbl_lang:'Idioma / Language',lbl_trlang:'Traducir a (tramas y episodios)',lbl_sugg:'Sugeridos',sg_all:'Todos',sg_ko:'Solo coreanos',update:'Actualización',fix_titles:'Actualizar títulos en inglés',fix_meta:'Descargar géneros y detalles de todos',fix_votes:'Actualizar valoraciones',backup:'Copia de seguridad',exp:'Exportar copia',imp:'Importar copia',save:'Guardar',cancel:'Cancelar',season_n:'Temporada {0}',episode_n:'Episodio {0}',episodes_n:'{0} episodios',tr_btn:'Traducir',loading:'Cargando…',loading_plot:'Cargando la trama…',no_plot:'Trama no disponible.',no_plot_e:'Trama no disponible ({0})',no_filmo:'No se han encontrado títulos.',no_year:'Sin año',empty_tv:'No hay series en esta lista.',empty_mv:'No hay películas en esta lista.',empty_all:'Aún no hay series.<br>Pulsa “+ Añadir” para empezar.<br><br>Primero introduce tu clave de TMDB en ⚙',err_key:'Introduce tu clave de TMDB en ⚙',err_tmdb:'Error de TMDB {0}',err_badkey:' (clave no válida)',searching:'Buscando…',no_results:'Sin resultados.',pick_t:'Añadir “{0}” a…',tr_fail:'Traducción no disponible ahora. Inténtalo más tarde.',no_eps_data:'Datos de episodios no disponibles. Abre la serie con internet.',no_eps:'No hay episodios disponibles.',ext_fail:'{0} no se abrió. Comprueba que esté instalada o toca de nuevo para probar otro método ({1}/{2}).',imdb_unavail:'Id de IMDb no disponible ahora: {0}',no_imdb:'TMDB no tiene el id de IMDb de este título, así que no se puede abrir Nuvio desde aquí.',pic_missing:'Introduce el enlace de Pictorium en ⚙',mdb_nokey:'Introduce la clave de MDBList en ⚙ → Integraciones',mdb_nolink:'Define el enlace de esta lista en ⚙ → Integraciones',mdb_net:'No se puede conectar con MDBList (sin red o petición bloqueada por el navegador).',mdb_err:'Error de MDBList {0}',mdb_badkey:' (clave no válida)',mdb_404:' (lista no encontrada, revisa el enlace)',mdb_empty:'Lista vacía.',st_series:'{0} episodios, {1} series',st_movies:'{0} películas',st_pend:'{0} títulos por calcular: pulsa “Actualizar estadísticas”.',st_miss:'{0} títulos sin duración en TMDB, excluidos del tiempo.',st_uptodate:'Estadísticas ya actualizadas.',st_calc:'Calculando {0}/{1}…',st_done_err:'Terminado, {0} sin calcular ({1}). Inténtalo más tarde.',st_done:'Estadísticas actualizadas.',fix_upd:'Actualizando {0}/{1}…',fix_titles_done:'Títulos actualizados.',fix_all:'Todos los títulos ya están actualizados.',fix_dl:'Descargando {0}/{1}…',fix_dl_err:'Terminado, {0} sin descargar ({1}). Inténtalo más tarde.',fix_dl_done:'Géneros y detalles descargados.',fix_none:'No hay títulos en la lista.',fix_v_err:'Terminado, {0} sin actualizar ({1}). Inténtalo más tarde.',fix_v_done:'Valoraciones actualizadas.',imported:'Importado',bad_file:'Archivo no válido',memfull:'Almacenamiento lleno: exporta una copia y libera espacio.',rm_q:'¿Quitar “{0}”?',rm_ok:'Quitar',fin_q:'¡Serie terminada! ¿Moverla a Completadas?',fin_ok:'Mover',tot_q:'Número total de episodios',ok:'OK',save_q:'¿Guardar los cambios de los ajustes?',discard:'Descartar',s_recent:'Recientes',s_old:'Más antiguos',s_az:'A–Z',s_za:'Z–A',s_yd:'Año ↓',s_ya:'Año ↑',s_vd:'Nota ↓',s_va:'Nota ↑',sf_recent:'Más recientes primero',sf_old:'Más antiguos primero',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Año · más recientes primero',sf_ya:'Año · más antiguos primero',sf_vd:'Nota · más altas primero',sf_va:'Nota · más bajas primero',l_viste:'Completadas',l_vedere:'Para ver',l_guardando:'Viendo',l_abbandonate:'Abandonadas',l_visti:'Vistas',c_tv:'Series',c_movie:'Películas',sec_lang:'Idioma',sec_theme:'Temas',sec_data:'Datos y copia',set_title:'Ajustes',th_def:'Predeterminado',th_dark:'Oscuro',th_light:'Claro',th_custom:'Personalizado',c_bg:'Fondo',c_acc:'Acento',c_top:'Botones superiores',c_text:'Texto',c_auto:'Auto',explore:'Explore',view_all:'Ver todo',prog_title:'Progreso',ml_d0:'Últimas series',ml_d1:'Series populares',ml_d2:'Series mejor valoradas',ml_d3:'Últimas películas',ml_d4:'Películas populares',ml_d5:'Películas mejor valoradas',ph_mlu:'Enlace de la lista en mdblist.com',hist_clear:'Borrar historial',dl_latest:'Descargar la última versión (APK)'},
+fr:{add:'+ Ajouter',search:'Chercher',q_tv:'Chercher des séries sur TMDB…',q_mv:'Chercher des films sur TMDB…',q_def:'Chercher sur TMDB…',episodes_link:'Épisodes ›',trailer_link:'Bande-annonce ›',add_to:'Ajouter à…',suggested:'Suggestions',move:'Déplacer',poster_opts:'Options de l’affiche',orig:'Original',more_posters:'Autres affiches TMDB',remove:'Retirer de la liste',open_yt:'Ouvrir sur YouTube',load_more:'Charger plus',close:'✕ Fermer',stats:'Statistiques',series_u:'SÉRIES',movies_u:'FILMS',done_f:'Terminées',done_m:'Vus',upd_stats:'Mettre à jour les statistiques',integrations:'Intégrations',lbl_tmdb:'Clé API TMDB (v3) ou Read Access Token (v4)',lbl_pic:'Lien Pictorium (modèle avec {type}, {tmdb_id|imdb_id}, {shape})',lbl_shape:'Forme Pictorium',ph_shape:'ex. poster',lbl_auto:'Utiliser Pictorium pour les nouvelles séries',lbl_picmt:'Type Pictorium pour les films',lbl_automv:'Utiliser Pictorium pour les nouveaux films',lbl_picall:'Utiliser Pictorium aussi pour les titres absents de mes listes',lbl_mdb:'Clé API MDBList',lbl_mlrows:'Listes des boutons du haut (nom et lien MDBList)',lbl_nvtv:'Lien Nuvio pour les séries (variables : {imdb} {tmdb} {titolo})',lbl_nvmv:'Lien Nuvio pour les films',appearance:'Apparence',lbl_cols:'Affiches par ligne en paysage',lbl_lang:'Langue / Language',lbl_trlang:'Traduire en (résumés et épisodes)',lbl_sugg:'Suggestions',sg_all:'Toutes',sg_ko:'Coréennes uniquement',update:'Mise à jour',fix_titles:'Mettre les titres en anglais',fix_meta:'Télécharger genres et détails de tous',fix_votes:'Mettre à jour les notes',backup:'Sauvegarde',exp:'Exporter la sauvegarde',imp:'Importer une sauvegarde',save:'Enregistrer',cancel:'Annuler',season_n:'Saison {0}',episode_n:'Épisode {0}',episodes_n:'{0} épisodes',tr_btn:'Traduire',loading:'Chargement…',loading_plot:'Chargement du résumé…',no_plot:'Résumé indisponible.',no_plot_e:'Résumé indisponible ({0})',no_filmo:'Aucun titre trouvé.',no_year:'Sans année',empty_tv:'Aucune série dans cette liste.',empty_mv:'Aucun film dans cette liste.',empty_all:'Aucune série pour l’instant.<br>Appuie sur « + Ajouter » pour commencer.<br><br>Saisis d’abord ta clé TMDB dans ⚙',err_key:'Saisis ta clé TMDB dans ⚙',err_tmdb:'Erreur TMDB {0}',err_badkey:' (clé invalide)',searching:'Recherche…',no_results:'Aucun résultat.',pick_t:'Ajouter « {0} » à…',tr_fail:'Traduction indisponible pour le moment. Réessaie plus tard.',no_eps_data:'Données des épisodes indisponibles. Ouvre la série avec internet.',no_eps:'Aucun épisode disponible.',ext_fail:'{0} ne s’est pas ouvert. Vérifie qu’il est installé ou touche à nouveau pour essayer une autre méthode ({1}/{2}).',imdb_unavail:'Identifiant IMDb indisponible pour le moment : {0}',no_imdb:'TMDB n’a pas l’identifiant IMDb de ce titre, Nuvio ne peut donc pas s’ouvrir d’ici.',pic_missing:'Saisis le lien Pictorium dans ⚙',mdb_nokey:'Saisis la clé MDBList dans ⚙ → Intégrations',mdb_nolink:'Définis le lien de cette liste dans ⚙ → Intégrations',mdb_net:'Impossible de joindre MDBList (pas de réseau ou requête bloquée par le navigateur).',mdb_err:'Erreur MDBList {0}',mdb_badkey:' (clé invalide)',mdb_404:' (liste introuvable, vérifie le lien)',mdb_empty:'Liste vide.',st_series:'{0} épisodes, {1} séries',st_movies:'{0} films',st_pend:'{0} titres restent à calculer : appuie sur « Mettre à jour les statistiques ».',st_miss:'{0} titres sans durée sur TMDB, exclus du temps.',st_uptodate:'Statistiques déjà à jour.',st_calc:'Calcul {0}/{1}…',st_done_err:'Terminé, {0} non calculés ({1}). Réessaie plus tard.',st_done:'Statistiques mises à jour.',fix_upd:'Mise à jour {0}/{1}…',fix_titles_done:'Titres mis à jour.',fix_all:'Tous les titres sont déjà à jour.',fix_dl:'Téléchargement {0}/{1}…',fix_dl_err:'Terminé, {0} non téléchargés ({1}). Réessaie plus tard.',fix_dl_done:'Genres et détails téléchargés.',fix_none:'Aucun titre dans la liste.',fix_v_err:'Terminé, {0} non mis à jour ({1}). Réessaie plus tard.',fix_v_done:'Notes mises à jour.',imported:'Importé',bad_file:'Fichier invalide',memfull:'Stockage plein : exporte une sauvegarde et libère de l’espace.',rm_q:'Retirer « {0} » ?',rm_ok:'Retirer',fin_q:'Série terminée ! La déplacer dans Terminées ?',fin_ok:'Déplacer',tot_q:'Nombre total d’épisodes',ok:'OK',save_q:'Enregistrer les modifications des réglages ?',discard:'Ignorer',s_recent:'Récents',s_old:'Anciens',s_az:'A–Z',s_za:'Z–A',s_yd:'Année ↓',s_ya:'Année ↑',s_vd:'Note ↓',s_va:'Note ↑',sf_recent:'Plus récents d’abord',sf_old:'Plus anciens d’abord',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Année · plus récents d’abord',sf_ya:'Année · plus anciens d’abord',sf_vd:'Note · plus hautes d’abord',sf_va:'Note · plus basses d’abord',l_viste:'Terminées',l_vedere:'À voir',l_guardando:'En cours',l_abbandonate:'Abandonnées',l_visti:'Vus',c_tv:'Séries',c_movie:'Films',sec_lang:'Langue',sec_theme:'Thèmes',sec_data:'Données et sauvegarde',set_title:'Réglages',th_def:'Par défaut',th_dark:'Sombre',th_light:'Clair',th_custom:'Personnalisé',c_bg:'Fond',c_acc:'Accent',c_top:'Boutons du haut',c_text:'Texte',c_auto:'Auto',explore:'Explore',view_all:'Tout voir',prog_title:'Progression',ml_d0:'Dernières séries',ml_d1:'Séries populaires',ml_d2:'Séries les mieux notées',ml_d3:'Derniers films',ml_d4:'Films populaires',ml_d5:'Films les mieux notés',ph_mlu:'Lien de la liste sur mdblist.com',hist_clear:'Effacer l’historique',dl_latest:'Télécharger la dernière version (APK)'},
+de:{add:'+ Hinzufügen',search:'Suchen',q_tv:'Serien auf TMDB suchen…',q_mv:'Filme auf TMDB suchen…',q_def:'Auf TMDB suchen…',episodes_link:'Episoden ›',trailer_link:'Trailer ›',add_to:'Hinzufügen zu…',suggested:'Vorschläge',move:'Verschieben',poster_opts:'Poster-Optionen',orig:'Original',more_posters:'Weitere TMDB-Poster',remove:'Aus der Liste entfernen',open_yt:'Auf YouTube öffnen',load_more:'Mehr laden',close:'✕ Schließen',stats:'Statistiken',series_u:'SERIEN',movies_u:'FILME',done_f:'Abgeschlossen',done_m:'Gesehen',upd_stats:'Statistiken aktualisieren',integrations:'Integrationen',lbl_tmdb:'TMDB-API-Schlüssel (v3) oder Read Access Token (v4)',lbl_pic:'Pictorium-Link (Vorlage mit {type}, {tmdb_id|imdb_id}, {shape})',lbl_shape:'Pictorium-Shape',ph_shape:'z. B. poster',lbl_auto:'Pictorium für neue Serien verwenden',lbl_picmt:'Pictorium-Typ für Filme',lbl_automv:'Pictorium für neue Filme verwenden',lbl_picall:'Pictorium auch für Titel verwenden, die nicht in meinen Listen sind',lbl_mdb:'MDBList-API-Schlüssel',lbl_mlrows:'Listen der oberen Tasten (Name und MDBList-Link)',lbl_nvtv:'Nuvio-Link für Serien (Platzhalter: {imdb} {tmdb} {titolo})',lbl_nvmv:'Nuvio-Link für Filme',appearance:'Darstellung',lbl_cols:'Poster pro Zeile im Querformat',lbl_lang:'Sprache / Language',lbl_trlang:'Übersetzen in (Handlungen und Episoden)',lbl_sugg:'Vorschläge',sg_all:'Alle',sg_ko:'Nur koreanische',update:'Aktualisierung',fix_titles:'Titel auf Englisch aktualisieren',fix_meta:'Genres und Details aller laden',fix_votes:'Bewertungen aktualisieren',backup:'Backup',exp:'Backup exportieren',imp:'Backup importieren',save:'Speichern',cancel:'Abbrechen',season_n:'Staffel {0}',episode_n:'Episode {0}',episodes_n:'{0} Episoden',tr_btn:'Übersetzen',loading:'Lädt…',loading_plot:'Handlung wird geladen…',no_plot:'Handlung nicht verfügbar.',no_plot_e:'Handlung nicht verfügbar ({0})',no_filmo:'Keine Titel gefunden.',no_year:'Ohne Jahr',empty_tv:'Keine Serien in dieser Liste.',empty_mv:'Keine Filme in dieser Liste.',empty_all:'Noch keine Serien.<br>Tippe auf „+ Hinzufügen“, um zu beginnen.<br><br>Gib zuerst deinen TMDB-Schlüssel in ⚙ ein',err_key:'Gib deinen TMDB-Schlüssel in ⚙ ein',err_tmdb:'TMDB-Fehler {0}',err_badkey:' (ungültiger Schlüssel)',searching:'Suche läuft…',no_results:'Keine Ergebnisse.',pick_t:'„{0}“ hinzufügen zu…',tr_fail:'Übersetzung derzeit nicht verfügbar. Versuche es später erneut.',no_eps_data:'Episodendaten nicht verfügbar. Öffne die Serie mit Internetverbindung.',no_eps:'Keine Episoden verfügbar.',ext_fail:'{0} wurde nicht geöffnet. Prüfe, ob es installiert ist, oder tippe erneut, um eine andere Methode zu versuchen ({1}/{2}).',imdb_unavail:'IMDb-ID derzeit nicht verfügbar: {0}',no_imdb:'TMDB hat keine IMDb-ID für diesen Titel, daher kann Nuvio von hier nicht geöffnet werden.',pic_missing:'Gib den Pictorium-Link in ⚙ ein',mdb_nokey:'Gib den MDBList-Schlüssel in ⚙ → Integrationen ein',mdb_nolink:'Lege den Link dieser Liste in ⚙ → Integrationen fest',mdb_net:'MDBList nicht erreichbar (kein Netz oder Anfrage vom Browser blockiert).',mdb_err:'MDBList-Fehler {0}',mdb_badkey:' (ungültiger Schlüssel)',mdb_404:' (Liste nicht gefunden, prüfe den Link)',mdb_empty:'Leere Liste.',st_series:'{0} Episoden, {1} Serien',st_movies:'{0} Filme',st_pend:'{0} Titel noch zu berechnen: tippe auf „Statistiken aktualisieren“.',st_miss:'{0} Titel ohne Laufzeit bei TMDB, nicht in der Zeit enthalten.',st_uptodate:'Statistiken bereits aktuell.',st_calc:'Berechne {0}/{1}…',st_done_err:'Fertig, {0} nicht berechnet ({1}). Versuche es später erneut.',st_done:'Statistiken aktualisiert.',fix_upd:'Aktualisiere {0}/{1}…',fix_titles_done:'Titel aktualisiert.',fix_all:'Alle Titel sind bereits aktuell.',fix_dl:'Lade {0}/{1}…',fix_dl_err:'Fertig, {0} nicht geladen ({1}). Versuche es später erneut.',fix_dl_done:'Genres und Details geladen.',fix_none:'Keine Titel in der Liste.',fix_v_err:'Fertig, {0} nicht aktualisiert ({1}). Versuche es später erneut.',fix_v_done:'Bewertungen aktualisiert.',imported:'Importiert',bad_file:'Ungültige Datei',memfull:'Speicher voll: exportiere ein Backup und schaffe Platz.',rm_q:'„{0}“ entfernen?',rm_ok:'Entfernen',fin_q:'Serie beendet! In „Abgeschlossen“ verschieben?',fin_ok:'Verschieben',tot_q:'Gesamtzahl der Episoden',ok:'OK',save_q:'Änderungen an den Einstellungen speichern?',discard:'Verwerfen',s_recent:'Neueste',s_old:'Älteste',s_az:'A–Z',s_za:'Z–A',s_yd:'Jahr ↓',s_ya:'Jahr ↑',s_vd:'Wertung ↓',s_va:'Wertung ↑',sf_recent:'Neueste zuerst',sf_old:'Älteste zuerst',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Jahr · neueste zuerst',sf_ya:'Jahr · älteste zuerst',sf_vd:'Wertung · höchste zuerst',sf_va:'Wertung · niedrigste zuerst',l_viste:'Abgeschlossen',l_vedere:'Vormerkliste',l_guardando:'Läuft',l_abbandonate:'Abgebrochen',l_visti:'Gesehen',c_tv:'Serien',c_movie:'Filme',sec_lang:'Sprache',sec_theme:'Designs',sec_data:'Daten und Backup',set_title:'Einstellungen',th_def:'Standard',th_dark:'Dunkel',th_light:'Hell',th_custom:'Benutzerdefiniert',c_bg:'Hintergrund',c_acc:'Akzent',c_top:'Obere Tasten',c_text:'Text',c_auto:'Auto',explore:'Explore',view_all:'Alle anzeigen',prog_title:'Fortschritt',ml_d0:'Neueste Serien',ml_d1:'Beliebte Serien',ml_d2:'Bestbewertete Serien',ml_d3:'Neueste Filme',ml_d4:'Beliebte Filme',ml_d5:'Bestbewertete Filme',ph_mlu:'Listenlink auf mdblist.com',hist_clear:'Verlauf löschen',dl_latest:'Neueste Version herunterladen (APK)'},
+pt:{add:'+ Adicionar',search:'Buscar',q_tv:'Buscar séries no TMDB…',q_mv:'Buscar filmes no TMDB…',q_def:'Buscar no TMDB…',episodes_link:'Episódios ›',trailer_link:'Trailer ›',add_to:'Adicionar a…',suggested:'Sugestões',move:'Mover',poster_opts:'Opções do pôster',orig:'Original',more_posters:'Mais pôsteres do TMDB',remove:'Remover da lista',open_yt:'Abrir no YouTube',load_more:'Carregar mais',close:'✕ Fechar',stats:'Estatísticas',series_u:'SÉRIES',movies_u:'FILMES',done_f:'Concluídas',done_m:'Concluídos',upd_stats:'Atualizar estatísticas',integrations:'Integrações',lbl_tmdb:'Chave de API do TMDB (v3) ou Read Access Token (v4)',lbl_pic:'Link do Pictorium (modelo com {type}, {tmdb_id|imdb_id}, {shape})',lbl_shape:'Formato do Pictorium',ph_shape:'ex.: poster',lbl_auto:'Usar o Pictorium nas séries novas',lbl_picmt:'Tipo do Pictorium para filmes',lbl_automv:'Usar o Pictorium nos filmes novos',lbl_picall:'Usar o Pictorium também nos títulos que não estão nas minhas listas',lbl_mdb:'Chave de API do MDBList',lbl_mlrows:'Listas dos botões superiores (nome e link do MDBList)',lbl_nvtv:'Link do Nuvio para séries (variáveis: {imdb} {tmdb} {titolo})',lbl_nvmv:'Link do Nuvio para filmes',appearance:'Aparência',lbl_cols:'Pôsteres por linha na horizontal',lbl_lang:'Idioma / Language',lbl_trlang:'Traduzir para (sinopses e episódios)',lbl_sugg:'Sugestões',sg_all:'Todas',sg_ko:'Só coreanas',update:'Atualização',fix_titles:'Atualizar títulos em inglês',fix_meta:'Baixar gêneros e detalhes de todos',fix_votes:'Atualizar notas',backup:'Backup',exp:'Exportar backup',imp:'Importar backup',save:'Salvar',cancel:'Cancelar',season_n:'Temporada {0}',episode_n:'Episódio {0}',episodes_n:'{0} episódios',tr_btn:'Traduzir',loading:'Carregando…',loading_plot:'Carregando a sinopse…',no_plot:'Sinopse indisponível.',no_plot_e:'Sinopse indisponível ({0})',no_filmo:'Nenhum título encontrado.',no_year:'Sem ano',empty_tv:'Nenhuma série nesta lista.',empty_mv:'Nenhum filme nesta lista.',empty_all:'Ainda não há séries.<br>Toque em “+ Adicionar” para começar.<br><br>Primeiro informe sua chave do TMDB em ⚙',err_key:'Informe sua chave do TMDB em ⚙',err_tmdb:'Erro do TMDB {0}',err_badkey:' (chave inválida)',searching:'Buscando…',no_results:'Nenhum resultado.',pick_t:'Adicionar “{0}” a…',tr_fail:'Tradução indisponível no momento. Tente novamente mais tarde.',no_eps_data:'Dados dos episódios indisponíveis. Abra a série com internet.',no_eps:'Nenhum episódio disponível.',ext_fail:'{0} não abriu. Verifique se está instalado ou toque de novo para tentar outro método ({1}/{2}).',imdb_unavail:'Id do IMDb indisponível no momento: {0}',no_imdb:'O TMDB não tem o id do IMDb deste título, então o Nuvio não pode ser aberto daqui.',pic_missing:'Informe o link do Pictorium em ⚙',mdb_nokey:'Informe a chave do MDBList em ⚙ → Integrações',mdb_nolink:'Defina o link desta lista em ⚙ → Integrações',mdb_net:'Não foi possível acessar o MDBList (sem rede ou requisição bloqueada pelo navegador).',mdb_err:'Erro do MDBList {0}',mdb_badkey:' (chave inválida)',mdb_404:' (lista não encontrada, verifique o link)',mdb_empty:'Lista vazia.',st_series:'{0} episódios, {1} séries',st_movies:'{0} filmes',st_pend:'{0} títulos ainda por calcular: toque em “Atualizar estatísticas”.',st_miss:'{0} títulos sem duração no TMDB, excluídos do tempo.',st_uptodate:'Estatísticas já atualizadas.',st_calc:'Calculando {0}/{1}…',st_done_err:'Concluído, {0} não calculados ({1}). Tente novamente mais tarde.',st_done:'Estatísticas atualizadas.',fix_upd:'Atualizando {0}/{1}…',fix_titles_done:'Títulos atualizados.',fix_all:'Todos os títulos já estão atualizados.',fix_dl:'Baixando {0}/{1}…',fix_dl_err:'Concluído, {0} não baixados ({1}). Tente novamente mais tarde.',fix_dl_done:'Gêneros e detalhes baixados.',fix_none:'Nenhum título na lista.',fix_v_err:'Concluído, {0} não atualizados ({1}). Tente novamente mais tarde.',fix_v_done:'Notas atualizadas.',imported:'Importado',bad_file:'Arquivo inválido',memfull:'Armazenamento cheio: exporte um backup e libere espaço.',rm_q:'Remover “{0}”?',rm_ok:'Remover',fin_q:'Série finalizada! Movê-la para Concluídas?',fin_ok:'Mover',tot_q:'Número total de episódios',ok:'OK',save_q:'Salvar as alterações das configurações?',discard:'Descartar',s_recent:'Recentes',s_old:'Mais antigos',s_az:'A–Z',s_za:'Z–A',s_yd:'Ano ↓',s_ya:'Ano ↑',s_vd:'Nota ↓',s_va:'Nota ↑',sf_recent:'Mais recentes primeiro',sf_old:'Mais antigos primeiro',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'Ano · mais recentes primeiro',sf_ya:'Ano · mais antigos primeiro',sf_vd:'Nota · maiores primeiro',sf_va:'Nota · menores primeiro',l_viste:'Concluídas',l_vedere:'Para ver',l_guardando:'Assistindo',l_abbandonate:'Abandonadas',l_visti:'Concluídos',c_tv:'Séries',c_movie:'Filmes',sec_lang:'Idioma',sec_theme:'Temas',sec_data:'Dados e backup',set_title:'Configurações',th_def:'Padrão',th_dark:'Escuro',th_light:'Claro',th_custom:'Personalizado',c_bg:'Fundo',c_acc:'Destaque',c_top:'Botões superiores',c_text:'Texto',c_auto:'Auto',explore:'Explore',view_all:'Ver tudo',prog_title:'Progresso',ml_d0:'Últimas séries',ml_d1:'Séries populares',ml_d2:'Séries mais bem avaliadas',ml_d3:'Últimos filmes',ml_d4:'Filmes populares',ml_d5:'Filmes mais bem avaliados',ph_mlu:'Link da lista em mdblist.com',hist_clear:'Limpar histórico',dl_latest:'Baixar a versão mais recente (APK)'},
+hi:{add:'+ जोड़ें',search:'खोजें',q_tv:'TMDB पर सीरीज़ खोजें…',q_mv:'TMDB पर फ़िल्में खोजें…',q_def:'TMDB पर खोजें…',episodes_link:'एपिसोड ›',trailer_link:'ट्रेलर ›',add_to:'इसमें जोड़ें…',suggested:'सुझाव',move:'ले जाएँ',poster_opts:'पोस्टर विकल्प',orig:'मूल',more_posters:'TMDB के और पोस्टर',remove:'सूची से हटाएँ',open_yt:'YouTube पर खोलें',load_more:'और लोड करें',close:'✕ बंद करें',stats:'आँकड़े',series_u:'सीरीज़',movies_u:'फ़िल्में',done_f:'पूर्ण',done_m:'देखी हुई',upd_stats:'आँकड़े अपडेट करें',integrations:'इंटीग्रेशन',lbl_tmdb:'TMDB API कुंजी (v3) या Read Access Token (v4)',lbl_pic:'Pictorium लिंक ({type}, {tmdb_id|imdb_id}, {shape} वाला टेम्पलेट)',lbl_shape:'Pictorium शेप',ph_shape:'जैसे poster',lbl_auto:'नई सीरीज़ के लिए Pictorium इस्तेमाल करें',lbl_picmt:'फ़िल्मों के लिए Pictorium प्रकार',lbl_automv:'नई फ़िल्मों के लिए Pictorium इस्तेमाल करें',lbl_picall:'मेरी सूचियों में न होने वाले शीर्षकों के लिए भी Pictorium इस्तेमाल करें',lbl_mdb:'MDBList API कुंजी',lbl_mlrows:'ऊपर के बटनों की सूचियाँ (नाम और MDBList लिंक)',lbl_nvtv:'सीरीज़ के लिए Nuvio लिंक (प्लेसहोल्डर: {imdb} {tmdb} {titolo})',lbl_nvmv:'फ़िल्मों के लिए Nuvio लिंक',appearance:'दिखावट',lbl_cols:'लैंडस्केप में प्रति पंक्ति पोस्टर',lbl_lang:'भाषा / Language',lbl_trlang:'अनुवाद की भाषा (कहानी और एपिसोड)',lbl_sugg:'सुझाव',sg_all:'सभी',sg_ko:'केवल कोरियाई',update:'अपडेट',fix_titles:'शीर्षक अंग्रेज़ी में अपडेट करें',fix_meta:'सभी की शैलियाँ और विवरण डाउनलोड करें',fix_votes:'रेटिंग अपडेट करें',backup:'बैकअप',exp:'बैकअप निर्यात करें',imp:'बैकअप आयात करें',save:'सहेजें',cancel:'रद्द करें',season_n:'सीज़न {0}',episode_n:'एपिसोड {0}',episodes_n:'{0} एपिसोड',tr_btn:'अनुवाद करें',loading:'लोड हो रहा है…',loading_plot:'कहानी लोड हो रही है…',no_plot:'कहानी उपलब्ध नहीं है।',no_plot_e:'कहानी उपलब्ध नहीं है ({0})',no_filmo:'कोई शीर्षक नहीं मिला।',no_year:'वर्ष नहीं',empty_tv:'इस सूची में कोई सीरीज़ नहीं है।',empty_mv:'इस सूची में कोई फ़िल्म नहीं है।',empty_all:'अभी कोई सीरीज़ नहीं है।<br>शुरू करने के लिए “+ जोड़ें” दबाएँ।<br><br>पहले ⚙ में अपनी TMDB कुंजी डालें',err_key:'⚙ में अपनी TMDB कुंजी डालें',err_tmdb:'TMDB त्रुटि {0}',err_badkey:' (अमान्य कुंजी)',searching:'खोज रहे हैं…',no_results:'कोई परिणाम नहीं।',pick_t:'“{0}” को इसमें जोड़ें…',tr_fail:'अनुवाद अभी उपलब्ध नहीं है। बाद में फिर कोशिश करें।',no_eps_data:'एपिसोड का डेटा उपलब्ध नहीं है। इंटरनेट चालू करके सीरीज़ खोलें।',no_eps:'कोई एपिसोड उपलब्ध नहीं है।',ext_fail:'{0} नहीं खुला। जाँचें कि वह इंस्टॉल है, या दूसरा तरीका आज़माने के लिए फिर से छुएँ ({1}/{2})।',imdb_unavail:'IMDb आईडी अभी उपलब्ध नहीं है: {0}',no_imdb:'TMDB के पास इस शीर्षक की IMDb आईडी नहीं है, इसलिए यहाँ से Nuvio नहीं खुल सकता।',pic_missing:'⚙ में Pictorium लिंक डालें',mdb_nokey:'⚙ → इंटीग्रेशन में MDBList कुंजी डालें',mdb_nolink:'⚙ → इंटीग्रेशन में इस सूची का लिंक सेट करें',mdb_net:'MDBList तक नहीं पहुँच सके (नेटवर्क नहीं है या ब्राउज़र ने अनुरोध रोका)।',mdb_err:'MDBList त्रुटि {0}',mdb_badkey:' (अमान्य कुंजी)',mdb_404:' (सूची नहीं मिली, लिंक जाँचें)',mdb_empty:'सूची खाली है।',st_series:'{0} एपिसोड, {1} सीरीज़',st_movies:'{0} फ़िल्में',st_pend:'{0} शीर्षकों की गणना बाकी है: “आँकड़े अपडेट करें” दबाएँ।',st_miss:'{0} शीर्षकों की TMDB पर अवधि नहीं है, समय में शामिल नहीं।',st_uptodate:'आँकड़े पहले से अपडेट हैं।',st_calc:'गणना {0}/{1}…',st_done_err:'पूरा हुआ, {0} की गणना नहीं हुई ({1})। बाद में फिर कोशिश करें।',st_done:'आँकड़े अपडेट हो गए।',fix_upd:'अपडेट हो रहा है {0}/{1}…',fix_titles_done:'शीर्षक अपडेट हो गए।',fix_all:'सभी शीर्षक पहले से अपडेट हैं।',fix_dl:'डाउनलोड हो रहा है {0}/{1}…',fix_dl_err:'पूरा हुआ, {0} डाउनलोड नहीं हुए ({1})। बाद में फिर कोशिश करें।',fix_dl_done:'शैलियाँ और विवरण डाउनलोड हो गए।',fix_none:'सूची में कोई शीर्षक नहीं है।',fix_v_err:'पूरा हुआ, {0} अपडेट नहीं हुए ({1})। बाद में फिर कोशिश करें।',fix_v_done:'रेटिंग अपडेट हो गईं।',imported:'आयात हो गया',bad_file:'अमान्य फ़ाइल',memfull:'स्टोरेज भर गया है: बैकअप निर्यात करें और जगह खाली करें।',rm_q:'“{0}” हटाएँ?',rm_ok:'हटाएँ',fin_q:'सीरीज़ पूरी हो गई! इसे पूर्ण में ले जाएँ?',fin_ok:'ले जाएँ',tot_q:'एपिसोड की कुल संख्या',ok:'ठीक है',save_q:'सेटिंग्स के बदलाव सहेजें?',discard:'छोड़ें',s_recent:'नवीनतम',s_old:'सबसे पुराने',s_az:'A–Z',s_za:'Z–A',s_yd:'वर्ष ↓',s_ya:'वर्ष ↑',s_vd:'रेटिंग ↓',s_va:'रेटिंग ↑',sf_recent:'नवीनतम पहले',sf_old:'सबसे पुराने पहले',sf_az:'A–Z',sf_za:'Z–A',sf_yd:'वर्ष · नवीनतम पहले',sf_ya:'वर्ष · सबसे पुराने पहले',sf_vd:'रेटिंग · सबसे ऊँची पहले',sf_va:'रेटिंग · सबसे कम पहले',l_viste:'पूर्ण',l_vedere:'देखना है',l_guardando:'देख रहा हूँ',l_abbandonate:'छोड़ी हुई',l_visti:'देखी हुई',c_tv:'सीरीज़',c_movie:'फ़िल्में',sec_lang:'भाषा',sec_theme:'थीम',sec_data:'डेटा और बैकअप',set_title:'सेटिंग्स',th_def:'डिफ़ॉल्ट',th_dark:'गहरा',th_light:'हल्का',th_custom:'अनुकूलित',c_bg:'पृष्ठभूमि',c_acc:'एक्सेंट',c_top:'ऊपर के बटन',c_text:'टेक्स्ट',c_auto:'ऑटो',explore:'Explore',view_all:'सभी देखें',prog_title:'प्रगति',ml_d0:'नई सीरीज़',ml_d1:'लोकप्रिय सीरीज़',ml_d2:'सर्वाधिक रेटिंग वाली सीरीज़',ml_d3:'नई फ़िल्में',ml_d4:'लोकप्रिय फ़िल्में',ml_d5:'सर्वाधिक रेटिंग वाली फ़िल्में',ph_mlu:'mdblist.com पर सूची का लिंक',hist_clear:'इतिहास मिटाएँ',dl_latest:'नवीनतम संस्करण डाउनलोड करें (APK)'}
+});
+
+const UILANGS=[['it','Italiano'],['en','English'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['hi','हिन्दी']];
 const TRL=[['it','Italiano'],['es','Español'],['fr','Français'],['de','Deutsch'],['pt','Português'],['hi','हिन्दी']];
 const nav2=(navigator.language||'en').slice(0,2).toLowerCase();
-let LANG=nav2==='it'?'it':'en';
+let LANG=I18N[nav2]?nav2:'en';
 function t(k,...a){
-  let s=(I18N[LANG]&&I18N[LANG][k])||I18N.it[k]||k;
+  let s=(I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||I18N.it[k]||k;
   a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});
   return s;
 }
@@ -560,14 +585,16 @@ function buildThemes(){
     d.innerHTML=`<label>${t(lab)}</label>`;
     const sw=document.createElement('div');sw.className='sw';
     const set=v=>{cfg.cust=cfg.cust||{};if(v)cfg.cust[f]=v;else delete cfg.cust[f];saveCfg();applyTheme();buildThemes()};
-    if(f==='text'){const a=document.createElement('button');a.className='auto';a.textContent=t('c_auto');a.onclick=()=>set('');sw.appendChild(a)}
-    PASTEL.forEach(c=>{const b=document.createElement('button');b.style.background=c;b.onclick=()=>set(c);sw.appendChild(b)});
+    if(f==='text'){const a=document.createElement('button');a.className='auto'+(((cfg.cust||{}).text)?'':' cur');a.textContent=t('c_auto');a.onclick=()=>set('');sw.appendChild(a)}
+    const curv=((cfg.cust||{})[f]||(f==='text'?'':THEMES.def[f])||'').toLowerCase();
+    const base=f==='bg'?['#22222e','#0b0b0f','#f3f4f8']:f==='text'?['#ffffff','#1a1b24']:['#1b92e4','#e5484d'];
+    [...base,...PASTEL].forEach(c=>{const b=document.createElement('button');b.style.background=c;if(c.toLowerCase()===curv)b.classList.add('cur');b.onclick=()=>set(c);sw.appendChild(b)});
     const inp=document.createElement('input');inp.type='color';inp.value=(cfg.cust&&cfg.cust[f])||(f==='text'?themeVals().fg:themeVals()[f]);
     inp.onchange=()=>set(inp.value);sw.appendChild(inp);
     d.appendChild(sw);C.appendChild(d);
   });
 }
-function fillTrLang(){const k=document.getElementById('kTrLang');if(!k)return;const v=k.value;k.innerHTML=TRL.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');k.value=v||trLang()}
+function fillTrLang(){const kl=document.getElementById('kLang');if(kl){const lv=kl.value;kl.innerHTML=UILANGS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');kl.value=lv||LANG}const k=document.getElementById('kTrLang');if(!k)return;const v=k.value;k.innerHTML=TRL.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');k.value=v||trLang()}
 function applyI18n(){
   document.documentElement.lang=LANG;
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});
@@ -698,6 +725,8 @@ window.addEventListener('popstate',()=>{
   const n=stack.pop();
   if(!n)return;
   if(n==='pick')pending=null;
+  if(n==='search')clearSearch();
+  if(n==='mlist'&&mlStack.length){mlCur=mlStack.pop();$('#mTitle').textContent=mlCur.title||'';drawMl();$('#mlist .body').scrollTop=mlCur.y||0}
   if(n==='trailer')$('#tBox').innerHTML='';
   if(n==='dlg'&&dlgRes){const r=dlgRes;dlgRes=null;setTimeout(()=>r.res(r.val),0)}
   if(n==='sec')showSecHome();
@@ -896,7 +925,8 @@ function listRow(x){
   const parts=[];if(x.y)parts.push(x.y);parts.push(CAT[x.t]);
   if(s){if(x.t==='tv'&&s.eps)parts.push(t('episodes_n',s.eps));if(x.t==='movie'&&s.runtime)parts.push(fmtRun(s.runtime))}
   m.textContent=parts.join(' · ');inf.append(a,m);
-  if(s&&(s.genres||[]).length){const g=document.createElement('div');g.className='rg';g.textContent=s.genres.join(' • ');inf.appendChild(g)}
+  const gl=(s&&(s.genres||[]).length)?s.genres:(x.g||[]);
+  if(gl.length){const g=document.createElement('div');g.className='rg';g.textContent=gl.join(' • ');inf.appendChild(g)}
   d.append(c,inf);
   if(s&&voteOf(s))d.appendChild(vcEl(voteOf(s)));
   d.onclick=()=>openItem(x.t,x.id,x.n,x.y,x.p);
@@ -952,7 +982,9 @@ async function tmdb(path,params={}){
 
 async function doSearch(){
   const q=$('#q').value.trim(); if(!q) return;
-  const sc=searchCat;
+  const sc=searchCat||cat;
+  shist=[q,...shist.filter(x=>x.toLowerCase()!==q.toLowerCase())].slice(0,10);saveSh();
+  $('#hist').hidden=true;$('#q').blur();
   $('#sMsg').textContent=t('searching'); $('#res').innerHTML='';
   try{
     const j=await tmdb('/search/'+sc,{query:q,language:'en-US'});
@@ -1024,7 +1056,7 @@ function renderDetail(){
   $('#dTr').hidden=!s.tr;
   $('#dAdd').hidden=mine;
   $('#dEdit').hidden=!mine;
-  $('#dGen').textContent=(s.genres||[]).join(' • ');
+  renderGen(s);
   const pk='p'+ty(s)+s.id+'@'+trLang(),tron=trOn.has(pk)&&!!trc[pk];
   $('#dPlot').textContent=tron?trc[pk]:(s.overview||(loading.has(s)?t('loading_plot'):t('no_plot')));
   const tb=$('#dTrP');
@@ -1051,6 +1083,15 @@ function renderVote(s){
   $('#vTr').setAttribute('stroke',col[1]);
   $('#vRg').setAttribute('stroke',col[0]);
   $('#vRg').setAttribute('stroke-dasharray',(C*pct/100).toFixed(1)+' '+C.toFixed(1));
+}
+function renderGen(s){
+  const g=$('#dGen');g.innerHTML='';
+  (s.genres||[]).forEach((n,i)=>{
+    if(i)g.append(' • ');
+    const id=(s.gi||[])[i];
+    if(id){const a=document.createElement('a');a.className='gl';a.textContent=n;a.onclick=()=>openGenre(n,id,ty(s));g.appendChild(a)}
+    else g.append(n);
+  });
 }
 function renderCast(s){
   const box=$('#dCast');box.innerHTML='';
@@ -1170,23 +1211,24 @@ async function fetchSugg(s){
   }
   return ok?out.slice(0,12):null;
 }
+const sgMem={};
+const sgGet=s=>sg[sgKey(s)]||sgMem[sgKey(s)];
 async function loadSugg(s){
-  if(!inDb(s)){renderSugg();return}
   const k=sgKey(s);
-  if(!sg[k]){
+  if(!sgGet(s)){
     const r=await fetchSugg(s);
     if(!r)return;
-    sg[k]=r;
-    try{localStorage.setItem('sg',JSON.stringify(sg))}catch(e){}
+    if(inDb(s)){sg[k]=r;try{localStorage.setItem('sg',JSON.stringify(sg))}catch(e){}}
+    else sgMem[k]=r;
   }
   if(cur===s)renderSugg();
 }
 function renderSugg(){
   const s=cur,box=$('#dSugg');
-  if(!s||!inDb(s)||!(sg[sgKey(s)]||[]).length){box.hidden=true;return}
+  if(!s||!(sgGet(s)||[]).length){box.hidden=true;return}
   box.hidden=false;
   const row=$('#dSgRow');row.innerHTML='';
-  sg[sgKey(s)].forEach(x=>{
+  sgGet(s).forEach(x=>{
     const t=ty(s);
     const d=document.createElement('div');d.className='sgi';
     const c=document.createElement('div');c.className='c';
@@ -1348,9 +1390,32 @@ document.querySelectorAll('.ddb').forEach(btn=>btn.onclick=e=>toggleMenu(btn.dat
 $('#bSort').onclick=e=>toggleMenu('sort',$('#bSort'),e);
 $('#bView').onclick=()=>{vmode=vmode==='list'?'grid':'list';try{localStorage.setItem('vw',vmode)}catch(e){}render()};
 document.addEventListener('click',()=>closeLayer('menu'));
+let shist=jget('sh',[]);
+const saveSh=()=>{try{localStorage.setItem('sh',JSON.stringify(shist))}catch(e){}};
+function renderHist(){
+  const h=$('#hist');
+  if(!shist.length||$('#q').value.trim()){h.hidden=true;return}
+  h.innerHTML='';
+  shist.forEach(q=>{const b=document.createElement('button');b.textContent=q;b.onclick=()=>{$('#q').value=q;doSearch()};h.appendChild(b)});
+  const c=document.createElement('button');c.className='hclear';c.textContent=t('hist_clear');
+  c.onclick=()=>{shist=[];saveSh();h.hidden=true};
+  h.appendChild(c);h.hidden=false;
+}
+function setSearchCat(c){
+  searchCat=c;
+  document.querySelectorAll('#sType button').forEach(b=>{b.textContent=CAT[b.dataset.t];b.classList.toggle('on',b.dataset.t===c)});
+  $('#q').placeholder=c==='tv'?t('q_tv'):t('q_mv');
+}
+function clearSearch(){$('#q').value='';$('#res').innerHTML='';$('#sMsg').textContent='';$('#hist').hidden=true;searchCat=null}
+document.querySelectorAll('#sType button').forEach(b=>b.onclick=()=>{
+  setSearchCat(b.dataset.t);$('#res').innerHTML='';$('#sMsg').textContent='';
+  if($('#q').value.trim())doSearch();
+});
+$('#q').onfocus=renderHist;
+$('#q').oninput=renderHist;
+$('#q').onblur=()=>setTimeout(()=>{$('#hist').hidden=true},250);
 $('#bAdd').onclick=()=>{
-  if(searchCat!==cat){searchCat=cat;$('#res').innerHTML='';$('#sMsg').textContent='';$('#q').value=''}
-  $('#q').placeholder=cat==='tv'?t('q_tv'):t('q_mv');
+  clearSearch();setSearchCat(cat);
   openLayer('search');$('#q').focus();
 };
 $('#sClose').onclick=()=>closeLayer('search');
@@ -1475,6 +1540,9 @@ $('#pTot').onclick=()=>{
 let ml=jget('ml',{});
 const ML_LIM=40;
 let mlCur=null,mlTok=0;
+const mlStack=[];
+let mvw=localStorage.getItem('mvw')==='list'?'list':'grid';
+function mlPush(){if(stack.includes('mlist')&&mlCur){mlCur.y=$('#mlist .body').scrollTop;mlStack.push(mlCur)}}
 function renderMl(){
   const row=$('#mrow');row.innerHTML='';
   const ex=document.createElement('button');ex.textContent=t('explore');ex.onclick=openExplore;row.appendChild(ex);
@@ -1517,13 +1585,44 @@ function openMl(i){
   if(!L.u){toast(t('mdb_nolink'));return}
   $('#mTitle').textContent=L.n;
   $('#mGrid').innerHTML='';$('#mMsg').textContent=t('loading');$('#mMore').hidden=true;
-  mlCur={path:mlPath(L.u),items:[],more:false,tok:++mlTok};
-  openLayer('mlist');
+  mlPush();
+  mlCur={path:mlPath(L.u),items:[],more:false,tok:++mlTok,title:L.n};
+  openLayer('mlist',true);
   $('#mlist .body').scrollTop=0;
   loadMl(false);
 }
+function openGenre(name,gid,T){
+  mlPush();
+  $('#mTitle').textContent=name;
+  $('#mGrid').innerHTML='';$('#mMsg').textContent=t('loading');$('#mMore').hidden=true;
+  mlCur={kind:'genre',T,gid,page:0,items:[],more:false,tok:++mlTok,title:name};
+  openLayer('mlist',true);
+  $('#mlist .body').scrollTop=0;
+  loadGenre();
+}
+async function loadGenre(){
+  const c=mlCur,tok=c.tok;$('#mMore').disabled=true;
+  try{
+    const p={language:'en-US',with_genres:String(c.gid),sort_by:'popularity.desc','vote_count.gte':30,page:c.page+1};
+    if(sgMode()==='ko')p.with_original_language='ko';
+    const j=await tmdb('/discover/'+c.T,p);
+    if(tok!==mlTok)return;
+    c.page++;
+    const seen=new Set(c.items.map(x=>x.t+x.id));
+    (j.results||[]).forEach(r=>{
+      if(!r.poster_path||seen.has(c.T+r.id))return;seen.add(c.T+r.id);
+      c.items.push({t:c.T,id:r.id,n:r.name||r.title||'',y:(r.first_air_date||r.release_date||'').slice(0,4),p:r.poster_path,g:[]});
+    });
+    c.more=c.page<(j.total_pages||1)&&c.page<50;
+    drawMl();
+  }catch(e){
+    if(tok!==mlTok)return;
+    $('#mMsg').textContent=e.message;$('#mMore').disabled=false;
+  }
+}
 async function loadMl(force){
   const c=mlCur,tok=c.tok;
+  if(c.kind==='genre')return loadGenre();
   if(!c.items.length&&!force&&ml[c.path]&&ml[c.path].v===2&&Date.now()-ml[c.path].t<6*3600e3){
     c.items=ml[c.path].items.slice();c.more=ml[c.path].more;drawMl();return;
   }
@@ -1543,21 +1642,23 @@ async function loadMl(force){
 }
 function drawMl(){
   const c=mlCur,G=$('#mGrid');G.innerHTML='';
+  const lst=mvw==='list';G.className='pg'+(lst?' lst':'');$('#mView').textContent=lst?'▦':'☰';
   c.items.forEach(x=>{
+    if(lst){G.appendChild(listRow({t:x.t,id:x.id,n:x.n,y:x.y,p:x.p||'',g:x.g}));return}
     const d=document.createElement('div');d.className='it';
     const cc=document.createElement('div');cc.className='c';
-    const im=document.createElement('img');im.loading='lazy';fillImg(im,x.t,x.id,'','w185');cc.appendChild(im);
+    const im=document.createElement('img');im.loading='lazy';fillImg(im,x.t,x.id,x.p||'','w185');cc.appendChild(im);
     if(isDone(x.t,x.id)){const k=document.createElement('i');k.className='ck';k.textContent='✓';cc.appendChild(k)}
     const n=document.createElement('div');n.className='t';n.textContent=x.n;
     const y=document.createElement('div');y.className='y';y.textContent=x.y;
     d.append(cc,n,y);
-    d.onclick=()=>openItem(x.t,x.id,x.n,x.y,'');
+    d.onclick=()=>openItem(x.t,x.id,x.n,x.y,x.p||'');
     G.appendChild(d);
   });
   $('#mMsg').textContent=c.items.length?'':t('mdb_empty');
   $('#mMore').hidden=!c.more;$('#mMore').disabled=false;
 }
-const XN=12;
+const XN=24;
 async function mlFirst(path){
   const c=ml[path];
   if(c&&c.v===2&&Date.now()-c.t<6*3600e3)return c.items;
@@ -1611,7 +1712,8 @@ $('#xHome').onclick=goHome;
 $('#mClose').onclick=()=>closeLayer('mlist');
 $('#mHome').onclick=goHome;
 $('#mMore').onclick=()=>loadMl(true);
-$('#mRef').onclick=()=>{if(!mlCur)return;mlCur.items=[];mlCur.more=false;$('#mGrid').innerHTML='';$('#mMsg').textContent=t('loading');$('#mMore').hidden=true;loadMl(true)};
+$('#mView').onclick=()=>{mvw=mvw==='list'?'grid':'list';try{localStorage.setItem('mvw',mvw)}catch(e){}if(mlCur)drawMl()};
+$('#mRef').onclick=()=>{if(!mlCur)return;mlCur.page=0;mlCur.items=[];mlCur.more=false;$('#mGrid').innerHTML='';$('#mMsg').textContent=t('loading');$('#mMore').hidden=true;loadMl(true)};
 
 /* impostazioni */
 const MLDEF=[0,1,2,3,4,5].map(i=>({get toString(){return t('ml_d'+i)}}));
@@ -1687,7 +1789,7 @@ $('#bSet').onclick=()=>{
   $('#kTmdb').value=cfg.tmdb||'';$('#kPic').value=cfg.pic||'';$('#kShape').value=cfg.shape||'';
   $('#kAuto').checked=!!cfg.auto;$('#kPicMt').value=cfg.picMt||'movie';$('#kAutoMovie').checked=!!cfg.autoMovie;
   $('#kCols').value=String(cfg.cols||6);
-  $('#kLang').value=LANG;fillTrLang();$('#kTrLang').value=trLang();$('#kSugg').value=sgMode();
+  fillTrLang();$('#kLang').value=LANG;$('#kTrLang').value=trLang();$('#kSugg').value=sgMode();
   $('#kPicAll').checked=cfg.picAll!==false;$('#kMdb').value=cfg.mdb||'';
   $('#kNvTv').value=cfg.nvTv||NV_DEF.tv;$('#kNvMv').value=cfg.nvMv||NV_DEF.movie;
   const box=$('#mlRows');box.innerHTML='';

@@ -37,6 +37,17 @@
   .it{cursor:pointer;min-width:0}
   .t{font-size:11px;line-height:1.25;margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
   .y{font-size:10px;color:var(--mut);margin-top:1px}
+  #grid.lst{grid-template-columns:1fr!important;gap:10px}
+  .it.row{display:flex;gap:12px;align-items:center}
+  .it.row .c{width:64px;flex:none}
+  .rinf{flex:1;min-width:0}
+  .rinf .rt{font-size:15px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+  .rinf .rm{font-size:12px;color:var(--mut);margin-top:3px}
+  .rinf .rg{font-size:12px;color:var(--mut);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .vc{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;position:relative;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--tk) 0)}
+  .vc::before{content:'';position:absolute;inset:4px;border-radius:50%;background:#0b0b10}
+  .vc b{position:relative;font-weight:700}
+  #bView{padding:8px 12px}
   .yh{grid-column:1/-1;font-weight:700;font-size:16px;padding:12px 2px 2px}
   #empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:60px 0}
   .sheet{position:fixed;inset:0;z-index:10;background:var(--bg);display:none;flex-direction:column}
@@ -170,6 +181,7 @@
   </div>
   <div class="hrow">
     <button id="bSort"></button>
+    <button id="bView" aria-label="View"></button>
     <span class="sp"></span>
     <button id="bAdd" class="p" data-i18n="add"></button>
     <button id="bSet">⚙</button>
@@ -648,7 +660,8 @@ function render(){
     b.classList.toggle('act',c===cat);
   });
   $('#bSort').textContent=SORTS.find(x=>x[0]===sort)[1]+' ▾';
-  const g=$('#grid');g.innerHTML='';
+  $('#bView').textContent=vmode==='list'?'▦':'☰';
+  const g=$('#grid');g.innerHTML='';g.classList.toggle('lst',vmode==='list');
   if(!inList.length){
     const e=document.createElement('div');e.id='empty';
     e.innerHTML=db.length?(cat==='tv'?t('empty_tv'):t('empty_mv')):t('empty_all');
@@ -692,14 +705,38 @@ function render(){
         g.appendChild(h);
       }
     }
-    const d=document.createElement('div');d.className='it';
+    const d=document.createElement('div');d.className='it'+(vmode==='list'?' row':'');
     const c=document.createElement('div');c.className='c';
     if(poster(s)){const im=document.createElement('img');im.loading='lazy';im.src=poster(s);c.appendChild(im)}
-    const t=document.createElement('div');t.className='t';t.textContent=s.name;
-    d.append(c,t);
+    if(vmode==='list'){
+      const inf=document.createElement('div');inf.className='rinf';
+      const a=document.createElement('div');a.className='rt';a.textContent=s.name;
+      const m=document.createElement('div');m.className='rm';m.textContent=rowInfo(s);
+      inf.append(a,m);
+      if((s.genres||[]).length){const gg=document.createElement('div');gg.className='rg';gg.textContent=s.genres.join(' • ');inf.appendChild(gg)}
+      d.append(c,inf);
+      const v=voteOf(s);
+      if(v){
+        const pct=Math.round(v*10),col=pct>=70?['#21d07a','#1e5b3a']:pct>=40?['#d2d531','#5d5b17']:['#db2360','#5c1634'];
+        const vc=document.createElement('span');vc.className='vc';vc.style.setProperty('--p',pct);vc.style.setProperty('--c',col[0]);vc.style.setProperty('--tk',col[1]);
+        vc.innerHTML='<b>'+pct+'</b>';d.appendChild(vc);
+      }
+    }else{
+      const t=document.createElement('div');t.className='t';t.textContent=s.name;
+      d.append(c,t);
+    }
     d.onclick=()=>openDetail(s);
     g.appendChild(d);
   });
+}
+let vmode=localStorage.getItem('vw')==='list'?'list':'grid';
+function fmtRun(m){const h=Math.floor(m/60),mm=m%60;return h?h+'h '+mm+'m':mm+'m'}
+function rowInfo(s){
+  const T=ty(s),parts=[];
+  if(s.year)parts.push(s.year);
+  if(T==='tv'&&s.eps)parts.push(t('episodes_n',s.eps));
+  if(T==='movie'&&s.runtime)parts.push(fmtRun(s.runtime));
+  return parts.join(' · ');
 }
 function showMenu(kind,btn){
   menuKind=kind;
@@ -755,10 +792,8 @@ async function doSearch(){
       d.className='c'+(findDb(sc,x.id)?' done':'');
       d.innerHTML=`<img src="${IMG}w185${x.poster_path}"><span></span>`;
       d.querySelector('span').textContent=`${name} ${date}`;
-      d.onclick=()=>{
-        if(findDb(sc,x.id)) return;
-        askList({id:x.id,type:sc,name,year:date,path:x.poster_path},d);
-      };
+      d.dataset.k=sc+x.id;
+      d.onclick=()=>openItem(sc,x.id,name,date,x.poster_path);
       $('#res').appendChild(d);
     });
   }catch(e){$('#sMsg').textContent=e.message}
@@ -782,6 +817,7 @@ function addItem(l){
   if(((T==='tv'&&cfg.auto)||(T==='movie'&&cfg.autoMovie))&&cfg.pic) item.custom=picUrl(item);
   db.unshift(item);save();render();
   if(el)el.classList.add('done');
+  document.querySelectorAll('#res .c').forEach(e=>{if(e.dataset.k===T+item.id)e.classList.add('done')});
   closeLayer('pick');
   if(cur===item)renderDetail();
   renderSugg();
@@ -800,7 +836,7 @@ function openDetail(s){
   renderDetail();
   openLayer('detail',true);
   $('#detail .body').scrollTop=0;
-  if(s.v!==3||s.va===undefined||s.imdb===undefined||(s.overview!==undefined&&s.ol!=='en')) loadMeta(s); else loadSugg(s);
+  if(s.v!==3||s.va===undefined||s.imdb===undefined||s.cn!==15||(s.overview!==undefined&&s.ol!=='en')) loadMeta(s); else loadSugg(s);
 }
 function renderDetail(){
   const s=cur;if(!s)return;
@@ -893,9 +929,9 @@ async function fetchMeta(s){
   }else{
     s.runtime=d.runtime||0;
   }
-  if(cr) s.cast=(cr.cast||[]).filter(a=>a.profile_path).slice(0,8).map(a=>({id:a.id,n:a.name,p:a.profile_path,c:a.character||''}));
+  if(cr) s.cast=(cr.cast||[]).filter(a=>a.profile_path).slice(0,15).map(a=>({id:a.id,n:a.name,p:a.profile_path,c:a.character||''}));
   if(vd) s.tr=pickTrailer(vd.results);
-  s.v=3;
+  s.cn=15;s.v=3;
 }
 async function loadMeta(s){
   loading.add(s);renderDetailIf(s);
@@ -1134,6 +1170,7 @@ function toggleMenu(kind,btn,e){
 }
 document.querySelectorAll('.ddb').forEach(btn=>btn.onclick=e=>toggleMenu(btn.dataset.c,btn,e));
 $('#bSort').onclick=e=>toggleMenu('sort',$('#bSort'),e);
+$('#bView').onclick=()=>{vmode=vmode==='list'?'grid':'list';try{localStorage.setItem('vw',vmode)}catch(e){}render()};
 document.addEventListener('click',()=>closeLayer('menu'));
 $('#bAdd').onclick=()=>{
   if(searchCat!==cat){searchCat=cat;$('#res').innerHTML='';$('#sMsg').textContent='';$('#q').value=''}
@@ -1464,7 +1501,7 @@ $('#fixT').onclick=async()=>{
   }catch(e){save();render();$('#fixMsg').textContent=e.message}
 };
 $('#fixM').onclick=async()=>{
-  const todo=db.filter(s=>s.v!==3||s.va===undefined||s.imdb===undefined||s.ol!=='en');
+  const todo=db.filter(s=>s.v!==3||s.va===undefined||s.imdb===undefined||s.ol!=='en'||s.cn!==15);
   if(!todo.length){$('#fixMMsg').textContent=t('fix_all');return}
   let i=0,err=0,last='';
   for(const s of todo){
